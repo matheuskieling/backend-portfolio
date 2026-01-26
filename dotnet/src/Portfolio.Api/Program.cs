@@ -1,5 +1,14 @@
+using DotNetEnv;
 using Portfolio.Api;
 using Portfolio.Infrastructure;
+
+// Load .env file from solution root
+var solutionRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
+var envPath = Path.Combine(solutionRoot, ".env");
+if (File.Exists(envPath))
+{
+    Env.Load(envPath);
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
