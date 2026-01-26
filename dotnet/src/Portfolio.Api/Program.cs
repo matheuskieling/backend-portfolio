@@ -1,6 +1,6 @@
 using DotNetEnv;
+using Identity.Infrastructure;
 using Portfolio.Api;
-using Portfolio.Infrastructure;
 
 // Load .env file from solution root
 var solutionRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
@@ -12,7 +12,10 @@ if (File.Exists(envPath))
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddInfrastructure(builder.Configuration);
+// Modules
+builder.Services.AddIdentityModule(builder.Configuration);
+
+// API services (authentication, controllers, etc.)
 builder.Services.AddApiServices(builder.Configuration);
 
 var app = builder.Build();
