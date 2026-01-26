@@ -1,11 +1,11 @@
+using Identity.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
-using Xunit;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Portfolio.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
+using Xunit;
 
 namespace Identity.IntegrationTests.Infrastructure;
 
@@ -23,14 +23,14 @@ public class PortfolioWebApplicationFactory : WebApplicationFactory<Program>, IA
         builder.ConfigureTestServices(services =>
         {
             var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                d => d.ServiceType == typeof(DbContextOptions<IdentityDbContext>));
 
             if (descriptor != null)
             {
                 services.Remove(descriptor);
             }
 
-            services.AddDbContext<AppDbContext>(options =>
+            services.AddDbContext<IdentityDbContext>(options =>
                 options.UseNpgsql(_dbContainer.GetConnectionString()));
         });
     }
@@ -40,7 +40,7 @@ public class PortfolioWebApplicationFactory : WebApplicationFactory<Program>, IA
         await _dbContainer.StartAsync();
 
         using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
         await dbContext.Database.EnsureCreatedAsync();
     }
 

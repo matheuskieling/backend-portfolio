@@ -2,13 +2,13 @@ using Identity.Application.Repositories;
 using Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Portfolio.Infrastructure.Persistence.Identity.Repositories;
+namespace Identity.Infrastructure.Persistence.Repositories;
 
 public class UserRepository : IUserRepository
 {
-    private readonly AppDbContext _context;
+    private readonly IdentityDbContext _context;
 
-    public UserRepository(AppDbContext context)
+    public UserRepository(IdentityDbContext context)
     {
         _context = context;
     }

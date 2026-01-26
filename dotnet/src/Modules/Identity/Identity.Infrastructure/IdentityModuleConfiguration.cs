@@ -2,42 +2,48 @@ using Identity.Application.Common.Interfaces;
 using Identity.Application.Repositories;
 using Identity.Application.UseCases.Login;
 using Identity.Application.UseCases.RegisterUser;
+using Identity.Infrastructure.Persistence;
+using Identity.Infrastructure.Persistence.Repositories;
+using Identity.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Portfolio.Infrastructure.Persistence;
-using Portfolio.Infrastructure.Persistence.Identity.Repositories;
-using Portfolio.Infrastructure.Services;
 
-namespace Portfolio.Infrastructure;
+namespace Identity.Infrastructure;
 
-public static class DependencyInjection
+public static class IdentityModuleConfiguration
 {
-    public static IServiceCollection AddInfrastructure(
+    public static IServiceCollection AddIdentityModule(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddDbContext<AppDbContext>(options =>
+        // Database
+        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+            ?? configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Database connection string is not configured");
+
+        services.AddDbContext<IdentityDbContext>(options =>
             options.UseNpgsql(
-                configuration.GetConnectionString("DefaultConnection"),
+                connectionString,
                 npgsqlOptions => npgsqlOptions.MigrationsHistoryTable(
                     "__EFMigrationsHistory",
                     "dotnet_identity")));
 
+        // Unit of Work
         services.AddScoped<IUnitOfWork>(provider =>
-            provider.GetRequiredService<AppDbContext>());
+            provider.GetRequiredService<IdentityDbContext>());
 
-        // Identity repositories
+        // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
 
-        // Shared services
+        // Services
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-        // Identity use case handlers
+        // Use case handlers
         services.AddScoped<RegisterUserHandler>();
         services.AddScoped<LoginHandler>();
 

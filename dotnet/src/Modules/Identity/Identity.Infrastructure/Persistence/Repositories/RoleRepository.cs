@@ -2,13 +2,13 @@ using Identity.Application.Repositories;
 using Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Portfolio.Infrastructure.Persistence.Identity.Repositories;
+namespace Identity.Infrastructure.Persistence.Repositories;
 
 public class RoleRepository : IRoleRepository
 {
-    private readonly AppDbContext _context;
+    private readonly IdentityDbContext _context;
 
-    public RoleRepository(AppDbContext context)
+    public RoleRepository(IdentityDbContext context)
     {
         _context = context;
     }

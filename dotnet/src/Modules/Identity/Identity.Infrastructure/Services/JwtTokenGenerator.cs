@@ -6,7 +6,7 @@ using Identity.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Portfolio.Infrastructure.Services;
+namespace Identity.Infrastructure.Services;
 
 public class JwtTokenGenerator : IJwtTokenGenerator
 {
@@ -19,7 +19,8 @@ public class JwtTokenGenerator : IJwtTokenGenerator
 
     public string GenerateToken(User user)
     {
-        var key = _configuration["Jwt:Key"]
+        var key = Environment.GetEnvironmentVariable("JWT_KEY")
+            ?? _configuration["Jwt:Key"]
             ?? throw new InvalidOperationException("JWT Key is not configured");
         var issuer = _configuration["Jwt:Issuer"]
             ?? throw new InvalidOperationException("JWT Issuer is not configured");

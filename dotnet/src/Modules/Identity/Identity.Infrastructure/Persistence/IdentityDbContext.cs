@@ -3,26 +3,25 @@ using Identity.Domain.Common;
 using Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Portfolio.Infrastructure.Persistence;
+namespace Identity.Infrastructure.Persistence;
 
-public class AppDbContext : DbContext, IUnitOfWork
+public class IdentityDbContext : DbContext, IUnitOfWork
 {
     private readonly ICurrentUserService? _currentUserService;
 
-    // Identity module
     public DbSet<User> Users => Set<User>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
-    public AppDbContext(DbContextOptions<AppDbContext> options)
+    public IdentityDbContext(DbContextOptions<IdentityDbContext> options)
         : base(options)
     {
     }
 
-    public AppDbContext(
-        DbContextOptions<AppDbContext> options,
+    public IdentityDbContext(
+        DbContextOptions<IdentityDbContext> options,
         ICurrentUserService currentUserService)
         : base(options)
     {
@@ -31,7 +30,8 @@ public class AppDbContext : DbContext, IUnitOfWork
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        modelBuilder.HasDefaultSchema("dotnet_identity");
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(IdentityDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
     }
 

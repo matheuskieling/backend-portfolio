@@ -3,7 +3,7 @@ using System.Security.Claims;
 using Identity.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 
-namespace Portfolio.Infrastructure.Services;
+namespace Identity.Infrastructure.Services;
 
 public class CurrentUserService : ICurrentUserService
 {

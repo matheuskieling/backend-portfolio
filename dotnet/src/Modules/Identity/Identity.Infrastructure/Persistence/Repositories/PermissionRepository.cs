@@ -2,13 +2,13 @@ using Identity.Application.Repositories;
 using Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Portfolio.Infrastructure.Persistence.Identity.Repositories;
+namespace Identity.Infrastructure.Persistence.Repositories;
 
 public class PermissionRepository : IPermissionRepository
 {
-    private readonly AppDbContext _context;
+    private readonly IdentityDbContext _context;
 
-    public PermissionRepository(AppDbContext context)
+    public PermissionRepository(IdentityDbContext context)
     {
         _context = context;
     }
