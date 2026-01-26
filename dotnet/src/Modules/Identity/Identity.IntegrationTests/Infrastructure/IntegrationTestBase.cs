@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
-using Xunit;
+using Identity.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
-using Portfolio.Infrastructure.Persistence;
+using Xunit;
 
 namespace Identity.IntegrationTests.Infrastructure;
 
@@ -22,7 +22,7 @@ public abstract class IntegrationTestBase : IAsyncLifetime
     public virtual async Task DisposeAsync()
     {
         using var scope = Factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
 
         dbContext.Users.RemoveRange(dbContext.Users);
         dbContext.Roles.RemoveRange(dbContext.Roles);
