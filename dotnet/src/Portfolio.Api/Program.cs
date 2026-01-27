@@ -23,6 +23,8 @@ var app = builder.Build();
 
 app.ApplyMigrations();
 
+app.UseSwaggerDocumentation();
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
