@@ -7,6 +7,7 @@ namespace Portfolio.Api.Controllers.Identity;
 
 [ApiController]
 [Route("api/identity")]
+[Tags("Identity - Auth")]
 public class AuthController : ControllerBase
 {
     private readonly RegisterUserHandler _registerUserHandler;
