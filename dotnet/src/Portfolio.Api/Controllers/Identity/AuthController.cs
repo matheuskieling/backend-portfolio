@@ -1,9 +1,9 @@
+using Common.Contracts;
 using Identity.Application.UseCases.Login;
 using Identity.Application.UseCases.RegisterUser;
 using Identity.Domain.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Portfolio.Api.Common;
 using Portfolio.Api.Configuration;
 
 namespace Portfolio.Api.Controllers.Identity;
