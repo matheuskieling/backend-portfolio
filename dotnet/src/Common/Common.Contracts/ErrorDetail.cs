@@ -1,4 +1,4 @@
-namespace Portfolio.Api.Common;
+namespace Common.Contracts;
 
 public sealed class ErrorDetail
 {

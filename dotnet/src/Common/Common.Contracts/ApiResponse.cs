@@ -2,7 +2,7 @@ using System.Net;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Portfolio.Api.Common;
+namespace Common.Contracts;
 
 public class ApiResponse<T> : IActionResult
 {
@@ -13,6 +13,16 @@ public class ApiResponse<T> : IActionResult
 
     [JsonIgnore]
     public HttpStatusCode StatusCode { get; set; }
+
+    public async Task ExecuteResultAsync(ActionContext context)
+    {
+        var objectResult = new ObjectResult(this)
+        {
+            StatusCode = (int)StatusCode
+        };
+
+        await objectResult.ExecuteResultAsync(context);
+    }
 
     public static ApiResponse<T> Success(T data, HttpStatusCode statusCode = HttpStatusCode.OK) => new()
     {
@@ -30,16 +40,6 @@ public class ApiResponse<T> : IActionResult
 
     public static ApiResponse<T> Failure(string code, string message, HttpStatusCode statusCode = HttpStatusCode.BadRequest) =>
         Failure([ErrorDetail.Create(code, message)], statusCode);
-
-    public async Task ExecuteResultAsync(ActionContext context)
-    {
-        var objectResult = new ObjectResult(this)
-        {
-            StatusCode = (int)StatusCode
-        };
-
-        await objectResult.ExecuteResultAsync(context);
-    }
 
     public ApiResponse<T> AddWarning(string warning)
     {
