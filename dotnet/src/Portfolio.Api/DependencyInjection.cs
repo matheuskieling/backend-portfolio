@@ -12,6 +12,7 @@ public static class DependencyInjection
         services.AddControllers();
 
         services.AddJwtAuthentication(configuration);
+        services.AddSwaggerDocumentation();
 
         return services;
     }
