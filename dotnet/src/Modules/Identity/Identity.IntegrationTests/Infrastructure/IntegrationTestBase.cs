@@ -30,22 +30,8 @@ public abstract class IntegrationTestBase : IAsyncLifetime
         await dbContext.SaveChangesAsync();
     }
 
-    protected async Task<T?> GetAsync<T>(string url)
-    {
-        var response = await Client.GetAsync(url);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<T>();
-    }
-
     protected async Task<HttpResponseMessage> PostAsync<T>(string url, T content)
     {
         return await Client.PostAsJsonAsync(url, content);
-    }
-
-    protected async Task<TResponse?> PostAsync<TRequest, TResponse>(string url, TRequest content)
-    {
-        var response = await Client.PostAsJsonAsync(url, content);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<TResponse>();
     }
 }
