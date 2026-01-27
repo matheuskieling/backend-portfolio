@@ -1,3 +1,4 @@
+using Common.Infrastructure.Persistence;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -16,8 +17,10 @@ public class IdentityDbContextFactory : IDesignTimeDbContextFactory<IdentityDbCo
             Env.Load(envPath);
         }
 
-        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+        var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL")
             ?? throw new InvalidOperationException("DATABASE_URL not found in environment variables");
+
+        var connectionString = ConnectionStringHelper.ConvertToNpgsqlConnectionString(databaseUrl);
 
         var optionsBuilder = new DbContextOptionsBuilder<IdentityDbContext>();
         optionsBuilder.UseNpgsql(connectionString);
