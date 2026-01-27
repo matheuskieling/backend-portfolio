@@ -1,7 +1,7 @@
 using System.Net;
-using Xunit;
-using System.Net.Http.Json;
+using Common.IntegrationTests;
 using Identity.IntegrationTests.Infrastructure;
+using Xunit;
 
 namespace Identity.IntegrationTests;
 
@@ -27,13 +27,10 @@ public class AuthEndpointsTests : IntegrationTestBase
         var response = await PostAsync("/api/identity/register", request);
 
         // Assert
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-
-        var content = await response.Content.ReadFromJsonAsync<RegisterResponse>();
-        Assert.NotNull(content);
-        Assert.NotEqual(Guid.Empty, content.UserId);
-        Assert.Equal("test@example.com", content.Email);
-        Assert.Equal("John Doe", content.FullName);
+        var apiResponse = await response.ValidateSuccessAsync<RegisterResponse>(HttpStatusCode.Created);
+        Assert.NotEqual(Guid.Empty, apiResponse.Data!.UserId);
+        Assert.Equal("test@example.com", apiResponse.Data.Email);
+        Assert.Equal("John Doe", apiResponse.Data.FullName);
     }
 
     [Fact]
@@ -54,11 +51,7 @@ public class AuthEndpointsTests : IntegrationTestBase
         var response = await PostAsync("/api/identity/register", request);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-
-        var content = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-        Assert.NotNull(content);
-        Assert.Contains("already exists", content.Error, StringComparison.OrdinalIgnoreCase);
+        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "already exists");
     }
 
     [Fact]
@@ -122,14 +115,11 @@ public class AuthEndpointsTests : IntegrationTestBase
         var response = await PostAsync("/api/identity/login", loginRequest);
 
         // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        var content = await response.Content.ReadFromJsonAsync<LoginResponse>();
-        Assert.NotNull(content);
-        Assert.NotEmpty(content.Token);
-        Assert.NotEqual(Guid.Empty, content.UserId);
-        Assert.Equal("login@example.com", content.Email);
-        Assert.Equal("Jane Doe", content.FullName);
+        var apiResponse = await response.ValidateSuccessAsync<LoginResponse>(HttpStatusCode.OK);
+        Assert.NotEmpty(apiResponse.Data!.Token);
+        Assert.NotEqual(Guid.Empty, apiResponse.Data.UserId);
+        Assert.Equal("login@example.com", apiResponse.Data.Email);
+        Assert.Equal("Jane Doe", apiResponse.Data.FullName);
     }
 
     [Fact]
@@ -155,11 +145,7 @@ public class AuthEndpointsTests : IntegrationTestBase
         var response = await PostAsync("/api/identity/login", loginRequest);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-
-        var content = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-        Assert.NotNull(content);
-        Assert.Contains("invalid", content.Error, StringComparison.OrdinalIgnoreCase);
+        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "invalid");
     }
 
     [Fact]
@@ -176,11 +162,7 @@ public class AuthEndpointsTests : IntegrationTestBase
         var response = await PostAsync("/api/identity/login", loginRequest);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-
-        var content = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-        Assert.NotNull(content);
-        Assert.Contains("not found", content.Error, StringComparison.OrdinalIgnoreCase);
+        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "not found");
     }
 
     [Fact]
@@ -206,11 +188,10 @@ public class AuthEndpointsTests : IntegrationTestBase
         var response = await PostAsync("/api/identity/login", loginRequest);
 
         // Assert
-        var content = await response.Content.ReadFromJsonAsync<LoginResponse>();
-        Assert.NotNull(content);
+        var apiResponse = await response.ValidateSuccessAsync<LoginResponse>(HttpStatusCode.OK);
 
         // Decode JWT and verify claims
-        var tokenParts = content.Token.Split('.');
+        var tokenParts = apiResponse.Data!.Token.Split('.');
         Assert.Equal(3, tokenParts.Length);
 
         var payload = System.Text.Encoding.UTF8.GetString(
@@ -232,6 +213,5 @@ public class AuthEndpointsTests : IntegrationTestBase
     }
 
     private record RegisterResponse(Guid UserId, string Email, string FullName);
-    private record LoginResponse(string Token, Guid UserId, string Email, string FullName, IReadOnlyList<string> Roles);
-    private record ErrorResponse(string Error);
+    private record LoginResponse(string Token, Guid UserId, string Email, string FullName, IReadOnlyCollection<string> Roles);
 }
