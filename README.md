@@ -13,10 +13,10 @@ This project goes beyond basic CRUD to showcase:
 
 ## Implementations
 
-| Stack | Status |
-|-------|--------|
-| .NET 8 | In progress |
-| Java | Planned |
+| Stack | Status | Live Demo |
+|-------|--------|-----------|
+| .NET 8 | In progress | [API Docs](https://portfolio-dotnet-api.fly.dev/) |
+| Java | Planned | - |
 
 Each implementation follows identical business rules and architectural decisions, allowing direct comparison between stacks.
 
