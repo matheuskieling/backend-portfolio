@@ -2,6 +2,7 @@ using Identity.Application.UseCases.Login;
 using Identity.Application.UseCases.RegisterUser;
 using Identity.Domain.Common;
 using Microsoft.AspNetCore.Mvc;
+using Portfolio.Api.Common;
 
 namespace Portfolio.Api.Controllers.Identity;
 
@@ -22,7 +23,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(
+    public async Task<ApiResponse<RegisterUserResponse>> Register(
         [FromBody] RegisterUserRequest request,
         CancellationToken cancellationToken)
     {
@@ -36,21 +37,19 @@ public class AuthController : ControllerBase
 
             var result = await _registerUserHandler.HandleAsync(command, cancellationToken);
 
-            return Created($"/api/identity/users/{result.UserId}", new
-            {
+            return ApiResponse.Created(new RegisterUserResponse(
                 result.UserId,
                 result.Email,
-                result.FullName
-            });
+                result.FullName));
         }
         catch (DomainException ex)
         {
-            return BadRequest(new { error = ex.Message });
+            return ApiResponse.Failure<RegisterUserResponse>("DOMAIN_ERROR", ex.Message);
         }
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(
+    public async Task<ApiResponse<LoginResponse>> Login(
         [FromBody] LoginRequest request,
         CancellationToken cancellationToken)
     {
@@ -59,18 +58,16 @@ public class AuthController : ControllerBase
             var command = new LoginCommand(request.Email, request.Password);
             var result = await _loginHandler.HandleAsync(command, cancellationToken);
 
-            return Ok(new
-            {
+            return ApiResponse.Success(new LoginResponse(
                 result.Token,
                 result.UserId,
                 result.Email,
                 result.FullName,
-                result.Roles
-            });
+                result.Roles));
         }
         catch (DomainException ex)
         {
-            return BadRequest(new { error = ex.Message });
+            return ApiResponse.Failure<LoginResponse>("DOMAIN_ERROR", ex.Message);
         }
     }
 }
@@ -81,6 +78,18 @@ public sealed record RegisterUserRequest(
     string FirstName,
     string LastName);
 
+public sealed record RegisterUserResponse(
+    Guid UserId,
+    string Email,
+    string FullName);
+
 public sealed record LoginRequest(
     string Email,
     string Password);
+
+public sealed record LoginResponse(
+    string Token,
+    Guid UserId,
+    string Email,
+    string FullName,
+    IReadOnlyCollection<string> Roles);
