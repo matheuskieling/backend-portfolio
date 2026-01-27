@@ -13,6 +13,7 @@ public static class DependencyInjection
 
         services.AddJwtAuthentication(configuration);
         services.AddSwaggerDocumentation();
+        services.AddRateLimitingPolicies();
 
         return services;
     }

@@ -2,7 +2,9 @@ using Identity.Application.UseCases.Login;
 using Identity.Application.UseCases.RegisterUser;
 using Identity.Domain.Common;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Portfolio.Api.Common;
+using Portfolio.Api.Configuration;
 
 namespace Portfolio.Api.Controllers.Identity;
 
@@ -23,6 +25,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [EnableRateLimiting(RateLimitingConfiguration.AuthPolicy)]
     public async Task<ApiResponse<RegisterUserResponse>> Register(
         [FromBody] RegisterUserRequest request,
         CancellationToken cancellationToken)
@@ -49,6 +52,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting(RateLimitingConfiguration.AuthPolicy)]
     public async Task<ApiResponse<LoginResponse>> Login(
         [FromBody] LoginRequest request,
         CancellationToken cancellationToken)

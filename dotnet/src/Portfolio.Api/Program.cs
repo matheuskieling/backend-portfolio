@@ -26,6 +26,7 @@ app.ApplyMigrations();
 app.UseSwaggerDocumentation();
 
 app.UseHttpsRedirection();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
