@@ -1,6 +1,7 @@
 using DotNetEnv;
 using Identity.Infrastructure;
 using Portfolio.Api;
+using Portfolio.Api.Configuration;
 
 // Load .env file from solution root
 var solutionRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));

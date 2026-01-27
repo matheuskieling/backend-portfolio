@@ -8,7 +8,6 @@ public class IdentityDbContextFactory : IDesignTimeDbContextFactory<IdentityDbCo
 {
     public IdentityDbContext CreateDbContext(string[] args)
     {
-        // Load .env from solution root
         var currentDir = Directory.GetCurrentDirectory();
         var envPath = Path.Combine(currentDir, ".env");
 

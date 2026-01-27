@@ -1,9 +1,9 @@
 using Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace Portfolio.Api;
+namespace Portfolio.Api.Configuration;
 
-public static class MigrationExtensions
+public static class MigrationConfiguration
 {
     public static void ApplyMigrations(this WebApplication app)
     {
