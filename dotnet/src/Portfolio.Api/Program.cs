@@ -17,7 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddIdentityModule(builder.Configuration);
 
 // API services (authentication, controllers, etc.)
-builder.Services.AddApiServices(builder.Configuration);
+builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 

@@ -6,14 +6,15 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApiServices(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
         services.AddHttpContextAccessor();
         services.AddControllers();
 
         services.AddJwtAuthentication(configuration);
         services.AddSwaggerDocumentation();
-        services.AddRateLimitingPolicies();
+        services.AddRateLimitingPolicies(environment);
 
         return services;
     }
