@@ -13,7 +13,8 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddControllers();
 
-        var jwtKey = configuration["Jwt:Key"]
+        var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY")
+            ?? configuration["Jwt:Key"]
             ?? throw new InvalidOperationException("JWT Key is not configured");
         var jwtIssuer = configuration["Jwt:Issuer"]
             ?? throw new InvalidOperationException("JWT Issuer is not configured");

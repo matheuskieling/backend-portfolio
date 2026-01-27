@@ -18,9 +18,11 @@ public static class IdentityModuleConfiguration
         IConfiguration configuration)
     {
         // Database
-        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+        var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL")
             ?? configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Database connection string is not configured");
+
+        var connectionString = ConvertToNpgsqlConnectionString(databaseUrl);
 
         services.AddDbContext<IdentityDbContext>(options =>
             options.UseNpgsql(
@@ -48,5 +50,23 @@ public static class IdentityModuleConfiguration
         services.AddScoped<LoginHandler>();
 
         return services;
+    }
+
+    private static string ConvertToNpgsqlConnectionString(string databaseUrl)
+    {
+        // Already in Npgsql format (Host=...)
+        if (databaseUrl.Contains("Host=", StringComparison.OrdinalIgnoreCase))
+            return databaseUrl;
+
+        // Convert postgres:// URL to Npgsql format
+        var uri = new Uri(databaseUrl);
+        var userInfo = uri.UserInfo.Split(':');
+        var host = uri.Host;
+        var port = uri.Port > 0 ? uri.Port : 5432;
+        var database = uri.AbsolutePath.TrimStart('/');
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var sslMode = query["sslmode"] ?? "Require";
+
+        return $"Host={host};Port={port};Database={database};Username={userInfo[0]};Password={userInfo[1]};SSL Mode={sslMode};Trust Server Certificate=true";
     }
 }
