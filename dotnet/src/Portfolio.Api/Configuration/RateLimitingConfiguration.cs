@@ -8,10 +8,22 @@ public static class RateLimitingConfiguration
     public const string GlobalPolicy = "global";
     public const string AuthPolicy = "auth";
 
-    public static IServiceCollection AddRateLimitingPolicies(this IServiceCollection services)
+    public static IServiceCollection AddRateLimitingPolicies(
+        this IServiceCollection services,
+        IWebHostEnvironment environment)
     {
         services.AddRateLimiter(options =>
         {
+            // Disable rate limiting in test environment
+            if (environment.EnvironmentName == "Testing")
+            {
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(_ =>
+                    RateLimitPartition.GetNoLimiter("test"));
+                options.AddPolicy(GlobalPolicy, _ => RateLimitPartition.GetNoLimiter("test"));
+                options.AddPolicy(AuthPolicy, _ => RateLimitPartition.GetNoLimiter("test"));
+                return;
+            }
+
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
             // Global policy: 100 requests per minute per IP

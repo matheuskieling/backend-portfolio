@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -18,8 +19,19 @@ public class PortfolioWebApplicationFactory : WebApplicationFactory<Program>, IA
         .WithPassword("postgres")
         .Build();
 
+    public async Task InitializeAsync()
+    {
+        await _dbContainer.StartAsync();
+
+        // Set environment variables before host is built
+        Environment.SetEnvironmentVariable("DATABASE_URL", _dbContainer.GetConnectionString());
+        Environment.SetEnvironmentVariable("JWT_KEY", "test-secret-key-for-integration-tests-minimum-32-chars");
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseEnvironment("Testing");
+
         builder.ConfigureTestServices(services =>
         {
             var descriptor = services.SingleOrDefault(
@@ -35,13 +47,15 @@ public class PortfolioWebApplicationFactory : WebApplicationFactory<Program>, IA
         });
     }
 
-    public async Task InitializeAsync()
+    protected override IHost CreateHost(IHostBuilder builder)
     {
-        await _dbContainer.StartAsync();
+        var host = base.CreateHost(builder);
 
-        using var scope = Services.CreateScope();
+        using var scope = host.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-        await dbContext.Database.EnsureCreatedAsync();
+        dbContext.Database.EnsureCreated();
+
+        return host;
     }
 
     public new async Task DisposeAsync()
