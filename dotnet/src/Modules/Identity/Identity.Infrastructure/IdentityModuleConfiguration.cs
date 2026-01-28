@@ -34,7 +34,7 @@ public static class IdentityModuleConfiguration
                     "dotnet_identity")));
 
         // Unit of Work
-        services.AddScoped<IUnitOfWork>(provider =>
+        services.AddScoped<IIdentityUnitOfWork>(provider =>
             provider.GetRequiredService<IdentityDbContext>());
 
         // Repositories

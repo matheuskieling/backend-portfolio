@@ -9,12 +9,12 @@ public sealed class RegisterUserHandler
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IIdentityUnitOfWork _unitOfWork;
 
     public RegisterUserHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
-        IUnitOfWork unitOfWork)
+        IIdentityUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
