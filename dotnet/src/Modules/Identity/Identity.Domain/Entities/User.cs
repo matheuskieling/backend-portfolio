@@ -1,4 +1,4 @@
-using Identity.Domain.Common;
+using Common.Domain;
 using Identity.Domain.Enums;
 using Identity.Domain.Exceptions;
 using Identity.Domain.ValueObjects;

@@ -1,4 +1,4 @@
-namespace Identity.Domain.Common;
+namespace Common.Domain;
 
 public abstract class DomainException : Exception
 {
