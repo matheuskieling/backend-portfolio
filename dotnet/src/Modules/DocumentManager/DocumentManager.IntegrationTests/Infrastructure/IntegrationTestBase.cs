@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using Common.IntegrationTests;
 using DocumentManager.Infrastructure.Persistence;
 using Identity.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Portfolio.Api.Contracts.DocumentManager;
 using Xunit;
@@ -28,26 +29,31 @@ public abstract class IntegrationTestBase : IAsyncLifetime
     {
         using var scope = Factory.Services.CreateScope();
 
-        // Clean DocumentManager data
+        // Clean DocumentManager data using TRUNCATE CASCADE to handle foreign keys
         var documentContext = scope.ServiceProvider.GetRequiredService<DocumentManagerDbContext>();
-        documentContext.ApprovalDecisions.RemoveRange(documentContext.ApprovalDecisions);
-        documentContext.ApprovalRequests.RemoveRange(documentContext.ApprovalRequests);
-        documentContext.ApprovalSteps.RemoveRange(documentContext.ApprovalSteps);
-        documentContext.ApprovalWorkflows.RemoveRange(documentContext.ApprovalWorkflows);
-        documentContext.DocumentTags.RemoveRange(documentContext.DocumentTags);
-        documentContext.DocumentVersions.RemoveRange(documentContext.DocumentVersions);
-        documentContext.Documents.RemoveRange(documentContext.Documents);
-        documentContext.Folders.RemoveRange(documentContext.Folders);
-        documentContext.Tags.RemoveRange(documentContext.Tags);
-        documentContext.AuditLogs.RemoveRange(documentContext.AuditLogs);
-        await documentContext.SaveChangesAsync();
+        await documentContext.Database.ExecuteSqlRawAsync(@"
+            TRUNCATE TABLE
+                dotnet_document_manager.approval_decisions,
+                dotnet_document_manager.approval_requests,
+                dotnet_document_manager.approval_steps,
+                dotnet_document_manager.approval_workflows,
+                dotnet_document_manager.document_tags,
+                dotnet_document_manager.document_versions,
+                dotnet_document_manager.documents,
+                dotnet_document_manager.folders,
+                dotnet_document_manager.tags,
+                dotnet_document_manager.audit_logs
+            CASCADE;
+        ");
 
-        // Clean Identity data
+        // Clean Identity user data only - preserve seeded roles/permissions
         var identityContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-        identityContext.Users.RemoveRange(identityContext.Users);
-        identityContext.Roles.RemoveRange(identityContext.Roles);
-        identityContext.Permissions.RemoveRange(identityContext.Permissions);
-        await identityContext.SaveChangesAsync();
+        await identityContext.Database.ExecuteSqlRawAsync(@"
+            TRUNCATE TABLE
+                dotnet_identity.user_roles,
+                dotnet_identity.users
+            CASCADE;
+        ");
     }
 
     #region HTTP Helpers
@@ -71,6 +77,9 @@ public abstract class IntegrationTestBase : IAsyncLifetime
 
     #region Auth Helpers
 
+    // DOCUMENT_REVIEWER role ID from migration (has approval:review permission)
+    private static readonly Guid DocumentReviewerRoleId = Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+
     protected async Task<string> RegisterAndLoginUserAsync(string email = "test@example.com")
     {
         var registerRequest = new
@@ -80,7 +89,17 @@ public abstract class IntegrationTestBase : IAsyncLifetime
             FirstName = "Test",
             LastName = "User"
         };
-        await PostAsync(Urls.Register, registerRequest);
+        var registerResponse = await PostAsync(Urls.Register, registerRequest);
+        var registerResult = await registerResponse.Content.ReadFromJsonAsync<RegisterResponseWrapper>();
+        var userId = registerResult!.Data!.UserId;
+
+        // Assign DOCUMENT_REVIEWER role to user (has approval:review permission)
+        using var scope = Factory.Services.CreateScope();
+        var identityContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        await identityContext.Database.ExecuteSqlRawAsync($@"
+            INSERT INTO dotnet_identity.user_roles (""Id"", ""UserId"", ""RoleId"", ""AssignedAt"")
+            VALUES ('{Guid.NewGuid()}', '{userId}', '{DocumentReviewerRoleId}', '{DateTime.UtcNow:O}');
+        ");
 
         var loginRequest = new { Email = email, Password = "SecurePassword123!" };
         var response = await PostAsync(Urls.Login, loginRequest);
@@ -168,4 +187,6 @@ public abstract class IntegrationTestBase : IAsyncLifetime
 
     private record LoginResponseWrapper(bool Succeeded, LoginData? Data);
     private record LoginData(string Token, Guid UserId, string Email, string FullName);
+    private record RegisterResponseWrapper(bool Succeeded, RegisterData? Data);
+    private record RegisterData(Guid UserId, string Email, string FullName);
 }

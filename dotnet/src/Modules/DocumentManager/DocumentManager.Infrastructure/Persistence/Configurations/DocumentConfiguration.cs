@@ -32,15 +32,24 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
             .HasForeignKey(d => d.FolderId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.Navigation(d => d.Versions)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasMany(d => d.Versions)
             .WithOne(v => v.Document)
             .HasForeignKey(v => v.DocumentId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Navigation(d => d.DocumentTags)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasMany(d => d.DocumentTags)
             .WithOne(dt => dt.Document)
             .HasForeignKey(dt => dt.DocumentId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(d => d.ApprovalRequests)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.HasMany(d => d.ApprovalRequests)
             .WithOne(ar => ar.Document)

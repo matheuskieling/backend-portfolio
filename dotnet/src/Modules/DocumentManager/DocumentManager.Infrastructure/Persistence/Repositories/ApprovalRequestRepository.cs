@@ -97,4 +97,9 @@ public class ApprovalRequestRepository : IApprovalRequestRepository
     {
         _context.ApprovalRequests.Update(approvalRequest);
     }
+
+    public void AddDecision(ApprovalDecision decision)
+    {
+        _context.ApprovalDecisions.Add(decision);
+    }
 }

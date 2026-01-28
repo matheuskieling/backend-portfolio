@@ -47,7 +47,6 @@ public sealed class RemoveTagFromDocumentHandler
 
         document.RemoveTag(tag);
 
-        _documentRepository.Update(document);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

@@ -59,7 +59,6 @@ public sealed class SubmitForApprovalHandler
         var approvalRequest = ApprovalRequest.Create(document, workflow, userId);
 
         _approvalRequestRepository.Add(approvalRequest);
-        _documentRepository.Update(document);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new SubmitForApprovalResult(approvalRequest.Id, document.Id, document.Title);

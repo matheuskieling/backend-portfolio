@@ -47,7 +47,6 @@ public sealed class AddTagToDocumentHandler
 
         document.AddTag(tag);
 
-        _documentRepository.Update(document);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

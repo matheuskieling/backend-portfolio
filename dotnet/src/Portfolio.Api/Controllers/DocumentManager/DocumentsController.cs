@@ -161,13 +161,13 @@ public class DocumentsController : ControllerBase
     /// <param name="id">The document ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>No content on success.</returns>
-    /// <response code="200">Document successfully deleted.</response>
+    /// <response code="204">Document successfully deleted.</response>
     /// <response code="400">Document is not in draft status.</response>
     /// <response code="401">Authentication required.</response>
     /// <response code="403">Not authorized to delete this document.</response>
     /// <response code="404">Document not found.</response>
     [HttpDelete("{id:guid}")]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
@@ -179,7 +179,7 @@ public class DocumentsController : ControllerBase
         var command = new DeleteDocumentCommand(id);
         await _deleteDocumentHandler.HandleAsync(command, cancellationToken);
 
-        return ApiResponse.Success<object>(null!);
+        return ApiResponse.NoContent();
     }
 
     /// <summary>

@@ -43,7 +43,6 @@ public sealed class UpdateDocumentHandler
         document.EnsureCanBeModifiedBy(userId);
         document.Update(command.Title, command.Description);
 
-        _documentRepository.Update(document);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new UpdateDocumentResult(document.Id, document.Title);

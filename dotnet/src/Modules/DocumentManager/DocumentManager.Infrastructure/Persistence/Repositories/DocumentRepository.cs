@@ -158,4 +158,9 @@ public class DocumentRepository : IDocumentRepository
     {
         _context.Documents.Remove(document);
     }
+
+    public void AddVersion(DocumentVersion version)
+    {
+        _context.DocumentVersions.Add(version);
+    }
 }

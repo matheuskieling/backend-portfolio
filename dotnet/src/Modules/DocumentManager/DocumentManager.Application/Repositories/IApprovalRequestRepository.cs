@@ -15,4 +15,5 @@ public interface IApprovalRequestRepository
     Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
     void Add(ApprovalRequest approvalRequest);
     void Update(ApprovalRequest approvalRequest);
+    void AddDecision(ApprovalDecision decision);
 }

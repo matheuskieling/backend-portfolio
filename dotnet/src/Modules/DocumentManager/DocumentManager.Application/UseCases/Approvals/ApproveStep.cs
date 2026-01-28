@@ -55,10 +55,11 @@ public sealed class ApproveStepHandler
         }
 
         var stepApproved = approvalRequest.CurrentStepOrder;
-        approvalRequest.RecordApproval(currentStep, userId, command.Comment);
+        var decision = approvalRequest.RecordApproval(currentStep, userId, command.Comment);
 
-        _approvalRequestRepository.Update(approvalRequest);
-        _documentRepository.Update(approvalRequest.Document);
+        // Explicitly add the decision to the context to ensure it's tracked as Added
+        _approvalRequestRepository.AddDecision(decision);
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new ApproveStepResult(approvalRequest.Id, stepApproved, approvalRequest.Status);

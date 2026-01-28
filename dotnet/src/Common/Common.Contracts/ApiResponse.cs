@@ -94,4 +94,7 @@ public static class ApiResponse
 
     public static ApiResponse<T> Forbidden<T>(string message = "Forbidden") =>
         ApiResponse<T>.Failure("FORBIDDEN", message, HttpStatusCode.Forbidden);
+
+    public static ApiResponse<object> NoContent() =>
+        ApiResponse<object>.Success(null!, HttpStatusCode.NoContent);
 }

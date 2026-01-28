@@ -209,7 +209,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
         var response = await PostAsync(Urls.ApproveStep(approval.ApprovalRequestId), new { });
 
         // Assert
-        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "in progress");
+        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "cannot be modified");
     }
 
     [Fact]
@@ -296,7 +296,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
         var response = await PostAsync(Urls.RejectStep(approval.ApprovalRequestId), new { });
 
         // Assert
-        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "in progress");
+        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "cannot be modified");
     }
 
     [Fact]

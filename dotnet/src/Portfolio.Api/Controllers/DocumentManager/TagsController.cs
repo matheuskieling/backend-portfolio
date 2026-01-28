@@ -80,13 +80,13 @@ public class TagsController : ControllerBase
     /// <param name="request">The tag to add.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Success confirmation.</returns>
-    /// <response code="200">Tag successfully added to document.</response>
+    /// <response code="204">Tag successfully added to document.</response>
     /// <response code="400">Tag already assigned to document.</response>
     /// <response code="401">Authentication required.</response>
     /// <response code="403">Not authorized to modify this document.</response>
     /// <response code="404">Document or tag not found.</response>
     [HttpPost("documents/{documentId:guid}/tags")]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
@@ -99,7 +99,7 @@ public class TagsController : ControllerBase
         var command = new AddTagToDocumentCommand(documentId, request.TagId);
         await _addTagToDocumentHandler.HandleAsync(command, cancellationToken);
 
-        return ApiResponse.Success<object>(null!);
+        return ApiResponse.NoContent();
     }
 
     /// <summary>
@@ -109,12 +109,14 @@ public class TagsController : ControllerBase
     /// <param name="tagId">The tag ID to remove.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Success confirmation.</returns>
-    /// <response code="200">Tag successfully removed from document.</response>
+    /// <response code="204">Tag successfully removed from document.</response>
+    /// <response code="400">Tag not assigned to document.</response>
     /// <response code="401">Authentication required.</response>
     /// <response code="403">Not authorized to modify this document.</response>
     /// <response code="404">Document or tag not found.</response>
     [HttpDelete("documents/{documentId:guid}/tags/{tagId:guid}")]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
@@ -126,6 +128,6 @@ public class TagsController : ControllerBase
         var command = new RemoveTagFromDocumentCommand(documentId, tagId);
         await _removeTagFromDocumentHandler.HandleAsync(command, cancellationToken);
 
-        return ApiResponse.Success<object>(null!);
+        return ApiResponse.NoContent();
     }
 }

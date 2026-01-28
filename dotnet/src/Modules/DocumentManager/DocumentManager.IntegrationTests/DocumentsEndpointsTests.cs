@@ -128,7 +128,7 @@ public class DocumentsEndpointsTests : IntegrationTestBase
             await CreateDocumentAsync($"Document {i}");
 
         // Act
-        var response = await GetAsync($"{Urls.Documents}?pageSize=3&pageNumber=2");
+        var response = await GetAsync($"{Urls.Documents}?pageSize=3&page=2");
 
         // Assert
         var apiResponse = await response.ValidateSuccessAsync<PagedResponse<DocumentListResponse>>(HttpStatusCode.OK);

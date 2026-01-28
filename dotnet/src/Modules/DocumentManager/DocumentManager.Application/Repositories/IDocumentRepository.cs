@@ -32,4 +32,5 @@ public interface IDocumentRepository
     void Add(Document document);
     void Update(Document document);
     void Remove(Document document);
+    void AddVersion(DocumentVersion version);
 }

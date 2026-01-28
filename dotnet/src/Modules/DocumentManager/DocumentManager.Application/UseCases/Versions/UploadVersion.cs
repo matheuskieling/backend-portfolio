@@ -64,7 +64,9 @@ public sealed class UploadVersionHandler
             storagePath,
             userId);
 
-        _documentRepository.Update(document);
+        // Explicitly add the version to the context to ensure it's tracked as Added
+        _documentRepository.AddVersion(version);
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new UploadVersionResult(version.Id, version.VersionNumber, version.FileName.Value);

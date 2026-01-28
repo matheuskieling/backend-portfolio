@@ -39,7 +39,6 @@ public sealed class DeleteDocumentHandler
 
         document.SoftDelete(userId);
 
-        _documentRepository.Update(document);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

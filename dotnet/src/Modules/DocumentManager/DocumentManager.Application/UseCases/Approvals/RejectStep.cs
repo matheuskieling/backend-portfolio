@@ -55,10 +55,11 @@ public sealed class RejectStepHandler
         }
 
         var stepRejected = approvalRequest.CurrentStepOrder;
-        approvalRequest.RecordRejection(currentStep, userId, command.Comment);
+        var decision = approvalRequest.RecordRejection(currentStep, userId, command.Comment);
 
-        _approvalRequestRepository.Update(approvalRequest);
-        _documentRepository.Update(approvalRequest.Document);
+        // Explicitly add the decision to the context to ensure it's tracked as Added
+        _approvalRequestRepository.AddDecision(decision);
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new RejectStepResult(approvalRequest.Id, stepRejected, approvalRequest.Status);

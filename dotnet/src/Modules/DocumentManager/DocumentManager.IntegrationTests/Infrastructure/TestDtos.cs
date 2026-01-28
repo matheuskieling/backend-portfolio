@@ -17,4 +17,4 @@ public record WorkflowListResponse(Guid Id, string Name, string? Description, bo
 public record ApprovalStatusResponse(Guid Id, string Status, int CurrentStepOrder, int TotalSteps);
 
 // Common
-public record PagedResponse<T>(IReadOnlyList<T> Items, int TotalCount, int PageNumber, int PageSize);
+public record PagedResponse<T>(IReadOnlyList<T> Items, int TotalCount, int Page, int PageSize);

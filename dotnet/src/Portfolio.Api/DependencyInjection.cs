@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Portfolio.Api.Configuration;
 
 namespace Portfolio.Api;
@@ -10,7 +11,11 @@ public static class DependencyInjection
         IWebHostEnvironment environment)
     {
         services.AddHttpContextAccessor();
-        services.AddControllers();
+        services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
 
         services.AddJwtAuthentication(configuration);
         services.AddSwaggerDocumentation();

@@ -100,7 +100,7 @@ public sealed class Document : AuditableEntity, IAggregateRoot
     public void AddTag(Tag tag)
     {
         if (_documentTags.Any(dt => dt.TagId == tag.Id))
-            return;
+            throw new TagAlreadyAssignedException(Id, tag.Id);
 
         var documentTag = DocumentTag.Create(this, tag);
         _documentTags.Add(documentTag);
@@ -110,11 +110,11 @@ public sealed class Document : AuditableEntity, IAggregateRoot
     public void RemoveTag(Tag tag)
     {
         var documentTag = _documentTags.FirstOrDefault(dt => dt.TagId == tag.Id);
-        if (documentTag is not null)
-        {
-            _documentTags.Remove(documentTag);
-            SetUpdated();
-        }
+        if (documentTag is null)
+            throw new TagNotAssignedException(Id, tag.Id);
+
+        _documentTags.Remove(documentTag);
+        SetUpdated();
     }
 
     public bool HasTag(Guid tagId)
