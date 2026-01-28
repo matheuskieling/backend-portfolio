@@ -1,4 +1,4 @@
-using Identity.Domain.Common;
+using Common.Domain;
 
 namespace Identity.Domain.Exceptions;
 
