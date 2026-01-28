@@ -14,25 +14,25 @@ public static class RateLimitingConfiguration
     {
         services.AddRateLimiter(options =>
         {
-            // Disable rate limiting in test environment
-            if (environment.EnvironmentName == "Testing")
+            // Disable rate limiting in test and development environments
+            if (environment.EnvironmentName == "Testing" || environment.IsDevelopment())
             {
                 options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(_ =>
-                    RateLimitPartition.GetNoLimiter("test"));
-                options.AddPolicy(GlobalPolicy, _ => RateLimitPartition.GetNoLimiter("test"));
-                options.AddPolicy(AuthPolicy, _ => RateLimitPartition.GetNoLimiter("test"));
+                    RateLimitPartition.GetNoLimiter("disabled"));
+                options.AddPolicy(GlobalPolicy, _ => RateLimitPartition.GetNoLimiter("disabled"));
+                options.AddPolicy(AuthPolicy, _ => RateLimitPartition.GetNoLimiter("disabled"));
                 return;
             }
 
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-            // Global policy: 100 requests per minute per IP
+            // Global policy: 60 requests per minute per IP
             options.AddPolicy(GlobalPolicy, httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
                     partitionKey: GetClientIp(httpContext),
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = 100,
+                        PermitLimit = 60,
                         Window = TimeSpan.FromMinutes(1),
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                         QueueLimit = 0
@@ -56,7 +56,7 @@ public static class RateLimitingConfiguration
                     partitionKey: GetClientIp(httpContext),
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = 100,
+                        PermitLimit = 60,
                         Window = TimeSpan.FromMinutes(1),
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                         QueueLimit = 0
