@@ -1,3 +1,4 @@
+using DocumentManager.Infrastructure.Persistence;
 using Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,8 +14,8 @@ public static class MigrationConfiguration
         var identityDb = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
         identityDb.Database.Migrate();
 
-        // Future modules:
-        // var catalogDb = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
-        // catalogDb.Database.Migrate();
+        // DocumentManager module
+        var documentManagerDb = scope.ServiceProvider.GetRequiredService<DocumentManagerDbContext>();
+        documentManagerDb.Database.Migrate();
     }
 }
