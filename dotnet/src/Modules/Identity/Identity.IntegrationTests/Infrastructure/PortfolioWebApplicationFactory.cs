@@ -5,26 +5,23 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Testcontainers.PostgreSql;
-using Xunit;
 
 namespace Identity.IntegrationTests.Infrastructure;
 
-public class PortfolioWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
+/// <summary>
+/// WebApplicationFactory that uses a pre-created database connection string.
+/// Each test class creates its own database and passes it to this factory.
+/// </summary>
+public class PortfolioWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
-        .WithDatabase("portfolio_test")
-        .WithUsername("postgres")
-        .WithPassword("postgres")
-        .Build();
+    private readonly string _connectionString;
 
-    public async Task InitializeAsync()
+    public PortfolioWebApplicationFactory(string connectionString)
     {
-        await _dbContainer.StartAsync();
+        _connectionString = connectionString;
 
         // Set environment variables before host is built
-        Environment.SetEnvironmentVariable("DATABASE_URL", _dbContainer.GetConnectionString());
+        Environment.SetEnvironmentVariable("DATABASE_URL", connectionString);
         Environment.SetEnvironmentVariable("JWT_KEY", "test-secret-key-for-integration-tests-minimum-32-chars");
     }
 
@@ -43,7 +40,7 @@ public class PortfolioWebApplicationFactory : WebApplicationFactory<Program>, IA
             }
 
             services.AddDbContext<IdentityDbContext>(options =>
-                options.UseNpgsql(_dbContainer.GetConnectionString()));
+                options.UseNpgsql(_connectionString));
         });
     }
 
@@ -56,11 +53,5 @@ public class PortfolioWebApplicationFactory : WebApplicationFactory<Program>, IA
         dbContext.Database.EnsureCreated();
 
         return host;
-    }
-
-    public new async Task DisposeAsync()
-    {
-        await _dbContainer.StopAsync();
-        await base.DisposeAsync();
     }
 }

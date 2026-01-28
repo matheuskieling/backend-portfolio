@@ -8,9 +8,6 @@ namespace DocumentManager.IntegrationTests;
 
 public class DocumentsEndpointsTests : IntegrationTestBase
 {
-    public DocumentsEndpointsTests(DocumentManagerWebApplicationFactory factory) : base(factory)
-    {
-    }
 
     #region Create Document
 

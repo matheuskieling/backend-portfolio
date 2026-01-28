@@ -8,9 +8,6 @@ namespace DocumentManager.IntegrationTests;
 
 public class ApprovalsEndpointsTests : IntegrationTestBase
 {
-    public ApprovalsEndpointsTests(DocumentManagerWebApplicationFactory factory) : base(factory)
-    {
-    }
 
     #region Submit for Approval
 

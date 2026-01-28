@@ -1,33 +1,39 @@
 using System.Net.Http.Json;
-using Identity.Infrastructure.Persistence;
-using Microsoft.Extensions.DependencyInjection;
+using Common.IntegrationTests;
 using Xunit;
 
 namespace Identity.IntegrationTests.Infrastructure;
 
-[Collection(nameof(IntegrationTestCollection))]
+/// <summary>
+/// Base class for integration tests with database-per-test isolation.
+/// Each test class gets its own database, allowing parallel execution.
+/// No collection attribute - tests run in parallel by default.
+/// </summary>
 public abstract class IntegrationTestBase : IAsyncLifetime
 {
-    protected readonly PortfolioWebApplicationFactory Factory;
-    protected readonly HttpClient Client;
+    private string? _connectionString;
+    protected PortfolioWebApplicationFactory Factory { get; private set; } = null!;
+    protected HttpClient Client { get; private set; } = null!;
 
-    protected IntegrationTestBase(PortfolioWebApplicationFactory factory)
+    public virtual async Task InitializeAsync()
     {
-        Factory = factory;
-        Client = factory.CreateClient();
-    }
+        // Create a unique database for this test class
+        _connectionString = await TestDatabaseManager.CreateDatabaseAsync(GetType().Name);
 
-    public virtual Task InitializeAsync() => Task.CompletedTask;
+        Factory = new PortfolioWebApplicationFactory(_connectionString);
+        Client = Factory.CreateClient();
+    }
 
     public virtual async Task DisposeAsync()
     {
-        using var scope = Factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        Client.Dispose();
+        await Factory.DisposeAsync();
 
-        dbContext.Users.RemoveRange(dbContext.Users);
-        dbContext.Roles.RemoveRange(dbContext.Roles);
-        dbContext.Permissions.RemoveRange(dbContext.Permissions);
-        await dbContext.SaveChangesAsync();
+        // Drop the test database
+        if (_connectionString != null)
+        {
+            await TestDatabaseManager.DropDatabaseAsync(_connectionString);
+        }
     }
 
     protected async Task<HttpResponseMessage> PostAsync<T>(string url, T content)

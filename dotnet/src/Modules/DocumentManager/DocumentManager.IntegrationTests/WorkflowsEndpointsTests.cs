@@ -8,9 +8,6 @@ namespace DocumentManager.IntegrationTests;
 
 public class WorkflowsEndpointsTests : IntegrationTestBase
 {
-    public WorkflowsEndpointsTests(DocumentManagerWebApplicationFactory factory) : base(factory)
-    {
-    }
 
     #region Create Workflow
 

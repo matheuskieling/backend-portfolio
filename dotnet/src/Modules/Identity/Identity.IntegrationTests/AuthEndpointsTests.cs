@@ -7,9 +7,6 @@ namespace Identity.IntegrationTests;
 
 public class AuthEndpointsTests : IntegrationTestBase
 {
-    public AuthEndpointsTests(PortfolioWebApplicationFactory factory) : base(factory)
-    {
-    }
 
     [Fact]
     public async Task Register_WithValidData_ReturnsCreatedWithUserInfo()

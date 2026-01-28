@@ -8,9 +8,6 @@ namespace DocumentManager.IntegrationTests;
 
 public class TagsEndpointsTests : IntegrationTestBase
 {
-    public TagsEndpointsTests(DocumentManagerWebApplicationFactory factory) : base(factory)
-    {
-    }
 
     #region Create Tag
 

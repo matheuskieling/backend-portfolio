@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Common.IntegrationTests;
-using DocumentManager.Infrastructure.Persistence;
 using Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,49 +10,36 @@ using Xunit;
 
 namespace DocumentManager.IntegrationTests.Infrastructure;
 
-[Collection(nameof(IntegrationTestCollection))]
+/// <summary>
+/// Base class for DocumentManager integration tests with database-per-test isolation.
+/// Each test class gets its own database, allowing parallel execution.
+/// No collection attribute - tests run in parallel by default.
+/// </summary>
 public abstract class IntegrationTestBase : IAsyncLifetime
 {
-    protected readonly DocumentManagerWebApplicationFactory Factory;
-    protected readonly HttpClient Client;
+    private string? _connectionString;
+    protected DocumentManagerWebApplicationFactory Factory { get; private set; } = null!;
+    protected HttpClient Client { get; private set; } = null!;
 
-    protected IntegrationTestBase(DocumentManagerWebApplicationFactory factory)
+    public virtual async Task InitializeAsync()
     {
-        Factory = factory;
-        Client = factory.CreateClient();
-    }
+        // Create a unique database for this test class
+        _connectionString = await TestDatabaseManager.CreateDatabaseAsync(GetType().Name);
 
-    public virtual Task InitializeAsync() => Task.CompletedTask;
+        Factory = new DocumentManagerWebApplicationFactory(_connectionString);
+        Client = Factory.CreateClient();
+    }
 
     public virtual async Task DisposeAsync()
     {
-        using var scope = Factory.Services.CreateScope();
+        Client.Dispose();
+        await Factory.DisposeAsync();
 
-        // Clean DocumentManager data using TRUNCATE CASCADE to handle foreign keys
-        var documentContext = scope.ServiceProvider.GetRequiredService<DocumentManagerDbContext>();
-        await documentContext.Database.ExecuteSqlRawAsync(@"
-            TRUNCATE TABLE
-                dotnet_document_manager.approval_decisions,
-                dotnet_document_manager.approval_requests,
-                dotnet_document_manager.approval_steps,
-                dotnet_document_manager.approval_workflows,
-                dotnet_document_manager.document_tags,
-                dotnet_document_manager.document_versions,
-                dotnet_document_manager.documents,
-                dotnet_document_manager.folders,
-                dotnet_document_manager.tags,
-                dotnet_document_manager.audit_logs
-            CASCADE;
-        ");
-
-        // Clean Identity user data only - preserve seeded roles/permissions
-        var identityContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-        await identityContext.Database.ExecuteSqlRawAsync(@"
-            TRUNCATE TABLE
-                dotnet_identity.user_roles,
-                dotnet_identity.users
-            CASCADE;
-        ");
+        // Drop the test database
+        if (_connectionString != null)
+        {
+            await TestDatabaseManager.DropDatabaseAsync(_connectionString);
+        }
     }
 
     #region HTTP Helpers

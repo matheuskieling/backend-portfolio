@@ -8,9 +8,6 @@ namespace DocumentManager.IntegrationTests;
 
 public class FoldersEndpointsTests : IntegrationTestBase
 {
-    public FoldersEndpointsTests(DocumentManagerWebApplicationFactory factory) : base(factory)
-    {
-    }
 
     #region Create Folder
 
