@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.OpenApi.Models;
 
 namespace Portfolio.Api.Configuration;
@@ -15,6 +16,14 @@ public static class SwaggerConfiguration
                 Version = "v1",
                 Description = "Backend portfolio demonstrating Clean Architecture with .NET"
             });
+
+            // Include XML comments
+            var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+            if (File.Exists(xmlPath))
+            {
+                options.IncludeXmlComments(xmlPath);
+            }
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
