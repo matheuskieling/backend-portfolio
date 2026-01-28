@@ -1,11 +1,11 @@
 using Identity.Application.Common.Interfaces;
-using Identity.Domain.Common;
+using Common.Domain;
 using Identity.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Identity.Infrastructure.Persistence;
 
-public class IdentityDbContext : DbContext, IUnitOfWork
+public class IdentityDbContext : DbContext, IIdentityUnitOfWork
 {
     private readonly ICurrentUserService? _currentUserService;
 
