@@ -1,3 +1,4 @@
+using Common.Contracts.Identity;
 using Common.Infrastructure.Persistence;
 using Identity.Application.Common.Interfaces;
 using Identity.Application.Repositories;
@@ -45,6 +46,7 @@ public static class IdentityModuleConfiguration
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IUserQueryService, UserQueryService>();
 
         // Use case handlers
         services.AddScoped<RegisterUserHandler>();
