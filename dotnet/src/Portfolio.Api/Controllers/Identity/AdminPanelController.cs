@@ -20,8 +20,10 @@ namespace Portfolio.Api.Controllers.Identity;
 /// - **ADMIN**: Full system access - bypasses all permission checks
 /// - **MANAGER**: Can view roles/permissions and manage their own role assignments
 ///
-/// **Demo Note:** This is a portfolio application. Users can self-assign the ADMIN role
-/// to explore all features. In a production environment, role assignment would be restricted.
+/// **Portfolio Privacy Policy:**
+/// Since this is a demo application where any user can self-assign the ADMIN role,
+/// all users (including admins) can only view and modify their own information.
+/// In a production system, admins would have full access to all user data.
 /// </remarks>
 [ApiController]
 [Route("api/admin")]
@@ -342,14 +344,14 @@ public class AdminPanelController : ControllerBase
     #region Users
 
     /// <summary>
-    /// Retrieves users list (demo: returns only current user).
+    /// Retrieves users list (portfolio: returns only current user).
     /// </summary>
     /// <remarks>
-    /// **Demo Restriction:** This is a portfolio application. To protect user privacy,
-    /// this endpoint only returns the current authenticated user's information.
-    /// Use `GET /api/admin/me` for a more semantic way to retrieve your own details.
+    /// **Portfolio Restriction:** Since users can self-assign the ADMIN role in this demo,
+    /// this endpoint only returns the current authenticated user to protect privacy.
+    /// In a production system, this would return all users for administrators.
     ///
-    /// In a production environment, this would return all users for administrators.
+    /// Use `GET /api/admin/me` for a more semantic way to retrieve your own details.
     /// </remarks>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List containing only the current user.</returns>
@@ -371,7 +373,8 @@ public class AdminPanelController : ControllerBase
     /// Retrieves a user by ID.
     /// </summary>
     /// <remarks>
-    /// Users can only retrieve their own information unless they have the ADMIN role.
+    /// **Portfolio Restriction:** Users can only retrieve their own information.
+    /// In a production system, admins would be able to view any user's data.
     /// Includes detailed information such as assigned roles and effective permissions.
     /// </remarks>
     /// <param name="id">The user ID.</param>
@@ -399,10 +402,11 @@ public class AdminPanelController : ControllerBase
     /// Assigns a role to a user.
     /// </summary>
     /// <remarks>
-    /// **Authorization:** ADMIN can assign roles to any user. Other users can only assign roles to themselves.
+    /// **Portfolio Restriction:** Users can only assign roles to themselves.
+    /// In a production system, admins would be able to manage any user's roles.
     ///
-    /// **Demo Feature:** In this portfolio application, users can self-assign the ADMIN role
-    /// to explore all system features. After assignment, re-login to get an updated token.
+    /// **Demo Feature:** Users can self-assign the ADMIN role to explore all system features.
+    /// After assignment, re-login to get an updated token.
     ///
     /// **Tip:** Use `GET /api/admin/roles` to find available role IDs.
     /// </remarks>
@@ -433,7 +437,8 @@ public class AdminPanelController : ControllerBase
     /// Removes a role from a user.
     /// </summary>
     /// <remarks>
-    /// **Authorization:** ADMIN can remove roles from any user. Other users can only remove roles from themselves.
+    /// **Portfolio Restriction:** Users can only remove roles from themselves.
+    /// In a production system, admins would be able to manage any user's roles.
     /// After removal, re-login to get an updated token reflecting the change.
     /// </remarks>
     /// <param name="userId">The user ID to remove the role from.</param>

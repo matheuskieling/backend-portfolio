@@ -39,9 +39,9 @@ public sealed class GetUserByIdHandler
         var currentUserId = _currentUserService.UserId
             ?? throw new UnauthorizedAccessException("User is not authenticated.");
 
-        // Check authorization: admin can view anyone, others can only view themselves
-        var isSelf = currentUserId == query.Id;
-        if (!_currentUserService.IsAdmin && !isSelf)
+        // Privacy protection: users can only view their own information
+        // Even admins cannot view other users' data in this portfolio application
+        if (currentUserId != query.Id)
         {
             throw new UnauthorizedAccessException("You can only view your own user information.");
         }

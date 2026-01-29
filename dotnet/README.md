@@ -20,7 +20,7 @@ dotnet run --project src/Portfolio.Api
 
 | Module | Description | Documentation |
 |--------|-------------|---------------|
-| **Identity** | Authentication, authorization, JWT, RBAC | [View docs](docs/identity.md) |
+| **Identity** | Authentication, authorization, JWT, RBAC, Admin Panel | [View docs](docs/identity.md) |
 | **DocumentManager** | Document management with approval workflows | [View docs](docs/document-manager.md) |
 
 ## Technology Stack
@@ -29,6 +29,7 @@ dotnet run --project src/Portfolio.Api
 - Entity Framework Core
 - PostgreSQL (containerized)
 - JWT Authentication
+- RBAC (Roles + Permissions)
 - xUnit + Testcontainers
 
 ## Project Structure
@@ -53,6 +54,23 @@ src/
 ### Identity (`/api/identity`)
 - `POST /register` - Create new user account
 - `POST /login` - Authenticate and get JWT token
+
+### Admin Panel (`/api/admin`)
+- `GET /me` - Get current user with roles and permissions
+- `GET /permissions` - List all permissions
+- `GET /permissions/{id}` - Get permission details
+- `POST /permissions` - Create permission (ADMIN)
+- `DELETE /permissions/{id}` - Delete permission (ADMIN)
+- `GET /roles` - List all roles with permissions
+- `GET /roles/{id}` - Get role details
+- `POST /roles` - Create role (ADMIN)
+- `DELETE /roles/{id}` - Delete role (ADMIN)
+- `POST /roles/{roleId}/permissions/{permissionId}` - Assign permission to role (ADMIN)
+- `DELETE /roles/{roleId}/permissions/{permissionId}` - Remove permission from role (ADMIN)
+- `GET /users` - List users (self only - privacy protection)
+- `GET /users/{id}` - Get user details (self only)
+- `POST /users/{userId}/roles/{roleId}` - Assign role to user (self only)
+- `DELETE /users/{userId}/roles/{roleId}` - Remove role from user (self only)
 
 ### Document Manager (`/api/document-manager`)
 - `POST /documents` - Create document

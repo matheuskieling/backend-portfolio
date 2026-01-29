@@ -407,7 +407,7 @@ public class AdminPanelEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task GetUserById_OtherUser_AsAdmin_ReturnsOk()
+    public async Task GetUserById_OtherUser_AsAdmin_ReturnsForbidden_PrivacyProtection()
     {
         // Arrange
         await AuthenticateAsync("user1@test.com");
@@ -415,12 +415,11 @@ public class AdminPanelEndpointsTests : IntegrationTestBase
 
         await AuthenticateAsync("admin@test.com", isAdmin: true);
 
-        // Act
+        // Act - Even admin cannot view other users (privacy protection)
         var response = await GetAsync($"/api/admin/users/{user1Id}");
 
         // Assert
-        var apiResponse = await response.ValidateSuccessAsync<UserDetailResponse>(HttpStatusCode.OK);
-        Assert.Equal(user1Id, apiResponse.Data!.Id);
+        await response.ValidateFailureAsync(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -491,7 +490,7 @@ public class AdminPanelEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task AssignRoleToUser_OtherUser_AsAdmin_ReturnsNoContent()
+    public async Task AssignRoleToUser_OtherUser_AsAdmin_ReturnsForbidden_PrivacyProtection()
     {
         // Arrange
         await AuthenticateAsync("user1@test.com");
@@ -500,11 +499,11 @@ public class AdminPanelEndpointsTests : IntegrationTestBase
         await AuthenticateAsync("admin@test.com", isAdmin: true);
         var adminRoleId = await GetRoleIdByNameAsync("ADMIN");
 
-        // Act
+        // Act - Even admin cannot modify other users' roles (privacy protection)
         var response = await PostAsync($"/api/admin/users/{user1Id}/roles/{adminRoleId}");
 
         // Assert
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        await response.ValidateFailureAsync(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -549,7 +548,7 @@ public class AdminPanelEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task RemoveRoleFromUser_OtherUser_AsAdmin_ReturnsNoContent()
+    public async Task RemoveRoleFromUser_OtherUser_AsAdmin_ReturnsForbidden_PrivacyProtection()
     {
         // Arrange
         await AuthenticateAsync("user1@test.com");
@@ -558,11 +557,11 @@ public class AdminPanelEndpointsTests : IntegrationTestBase
 
         await AuthenticateAsync("admin@test.com", isAdmin: true);
 
-        // Act
+        // Act - Even admin cannot modify other users' roles (privacy protection)
         var response = await DeleteAsync($"/api/admin/users/{user1Id}/roles/{managerRoleId}");
 
         // Assert
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        await response.ValidateFailureAsync(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -579,17 +578,18 @@ public class AdminPanelEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task AssignRoleToUser_NonExistentUser_ReturnsNotFound()
+    public async Task AssignRoleToUser_NonExistentUser_ReturnsForbidden_PrivacyProtection()
     {
         // Arrange
         await AuthenticateAsync(isAdmin: true);
         var adminRoleId = await GetRoleIdByNameAsync("ADMIN");
 
-        // Act
+        // Act - Even admin cannot modify other users (privacy protection)
+        // Returns Forbidden before checking if user exists
         var response = await PostAsync($"/api/admin/users/{Guid.NewGuid()}/roles/{adminRoleId}");
 
         // Assert
-        await response.ValidateFailureAsync(HttpStatusCode.NotFound);
+        await response.ValidateFailureAsync(HttpStatusCode.Forbidden);
     }
 
     #endregion
@@ -637,26 +637,27 @@ public class AdminPanelEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task AdminBypass_AdminCanDoEverything()
+    public async Task PrivacyProtection_AdminCannotAccessOtherUsers()
     {
         // Arrange - Create two users
         await AuthenticateAsync("regular@test.com");
         var regularUserId = CurrentTestUser.UserId;
 
         await AuthenticateAsync("admin@test.com", isAdmin: true);
-
-        // Act & Assert - Admin can view other user
-        var viewResponse = await GetAsync($"/api/admin/users/{regularUserId}");
-        Assert.Equal(HttpStatusCode.OK, viewResponse.StatusCode);
-
-        // Admin can assign roles to other user
         var adminRoleId = await GetRoleIdByNameAsync("ADMIN");
-        var assignResponse = await PostAsync($"/api/admin/users/{regularUserId}/roles/{adminRoleId}");
-        Assert.Equal(HttpStatusCode.NoContent, assignResponse.StatusCode);
 
-        // Admin can remove roles from other user
-        var removeResponse = await DeleteAsync($"/api/admin/users/{regularUserId}/roles/{adminRoleId}");
-        Assert.Equal(HttpStatusCode.NoContent, removeResponse.StatusCode);
+        // Act & Assert - Admin CANNOT view other user (privacy protection)
+        var viewResponse = await GetAsync($"/api/admin/users/{regularUserId}");
+        await viewResponse.ValidateFailureAsync(HttpStatusCode.Forbidden);
+
+        // Admin CANNOT assign roles to other user (privacy protection)
+        var assignResponse = await PostAsync($"/api/admin/users/{regularUserId}/roles/{adminRoleId}");
+        await assignResponse.ValidateFailureAsync(HttpStatusCode.Forbidden);
+
+        // Admin CANNOT remove roles from other user (privacy protection)
+        var managerRoleId = await GetRoleIdByNameAsync("MANAGER");
+        var removeResponse = await DeleteAsync($"/api/admin/users/{regularUserId}/roles/{managerRoleId}");
+        await removeResponse.ValidateFailureAsync(HttpStatusCode.Forbidden);
     }
 
     #endregion

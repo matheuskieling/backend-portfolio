@@ -32,9 +32,9 @@ public sealed class AssignRoleToUserHandler
         var currentUserId = _currentUserService.UserId
             ?? throw new UnauthorizedAccessException("User is not authenticated.");
 
-        // Check authorization: admin can manage anyone, managers can only manage themselves
-        var isSelfManagement = currentUserId == command.UserId;
-        if (!_currentUserService.IsAdmin && !isSelfManagement)
+        // Privacy protection: users can only manage their own roles
+        // Even admins cannot modify other users' roles in this portfolio application
+        if (currentUserId != command.UserId)
         {
             throw new UnauthorizedAccessException("You can only manage your own roles.");
         }
