@@ -28,9 +28,10 @@ Each implementation follows identical business rules and architectural decisions
 
 ## Modules
 
-- **Identity** - Authentication, JWT, RBAC with roles and permissions
-- **Catalog** - Products and categories management
-- **Orders** - Order lifecycle with business rule enforcement
+| Module | Description | Documentation |
+|--------|-------------|---------------|
+| **Identity** | Authentication, JWT, RBAC with roles and permissions | [.NET](dotnet/docs/identity.md) |
+| **DocumentManager** | Document management with multi-step approval workflows | [.NET](dotnet/docs/document-manager.md) |
 
 ## Philosophy
 
