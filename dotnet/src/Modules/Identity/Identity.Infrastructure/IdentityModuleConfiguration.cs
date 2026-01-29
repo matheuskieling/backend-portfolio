@@ -2,6 +2,9 @@ using Common.Contracts.Identity;
 using Common.Infrastructure.Persistence;
 using Identity.Application.Common.Interfaces;
 using Identity.Application.Repositories;
+using Identity.Application.UseCases.Admin.Permissions;
+using Identity.Application.UseCases.Admin.Roles;
+using Identity.Application.UseCases.Admin.Users;
 using Identity.Application.UseCases.Login;
 using Identity.Application.UseCases.RegisterUser;
 using Identity.Infrastructure.Persistence;
@@ -51,6 +54,27 @@ public static class IdentityModuleConfiguration
         // Use case handlers
         services.AddScoped<RegisterUserHandler>();
         services.AddScoped<LoginHandler>();
+
+        // Admin panel handlers - Permissions
+        services.AddScoped<GetPermissionsHandler>();
+        services.AddScoped<GetPermissionByIdHandler>();
+        services.AddScoped<CreatePermissionHandler>();
+        services.AddScoped<DeletePermissionHandler>();
+
+        // Admin panel handlers - Roles
+        services.AddScoped<GetRolesHandler>();
+        services.AddScoped<GetRoleByIdHandler>();
+        services.AddScoped<CreateRoleHandler>();
+        services.AddScoped<DeleteRoleHandler>();
+        services.AddScoped<AssignPermissionToRoleHandler>();
+        services.AddScoped<RemovePermissionFromRoleHandler>();
+
+        // Admin panel handlers - Users
+        services.AddScoped<GetUsersHandler>();
+        services.AddScoped<GetUserByIdHandler>();
+        services.AddScoped<AssignRoleToUserHandler>();
+        services.AddScoped<RemoveRoleFromUserHandler>();
+        services.AddScoped<GetCurrentUserHandler>();
 
         return services;
     }

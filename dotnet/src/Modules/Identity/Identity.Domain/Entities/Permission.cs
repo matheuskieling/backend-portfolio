@@ -23,7 +23,7 @@ public sealed class Permission : AuditableEntity, IAggregateRoot
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Permission name cannot be empty.", nameof(name));
 
-        return new Permission(name.Trim().ToUpperInvariant(), description?.Trim());
+        return new Permission(name.Trim().ToLowerInvariant(), description?.Trim());
     }
 
     public void UpdateDescription(string? description)

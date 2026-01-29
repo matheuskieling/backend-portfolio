@@ -37,6 +37,8 @@ public class CurrentUserService : ICurrentUserService
 
     public bool IsAuthenticated => User?.Identity?.IsAuthenticated ?? false;
 
+    public bool IsAdmin => HasRole("ADMIN");
+
     public IEnumerable<string> Roles =>
         User?.FindAll(ClaimTypes.Role).Select(c => c.Value) ?? Enumerable.Empty<string>();
 
@@ -47,5 +49,5 @@ public class CurrentUserService : ICurrentUserService
         Roles.Any(r => string.Equals(r, role, StringComparison.OrdinalIgnoreCase));
 
     public bool HasPermission(string permission) =>
-        Permissions.Any(p => string.Equals(p, permission, StringComparison.OrdinalIgnoreCase));
+        IsAdmin || Permissions.Any(p => string.Equals(p, permission, StringComparison.OrdinalIgnoreCase));
 }
