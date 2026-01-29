@@ -2,9 +2,6 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Common.IntegrationTests;
-using Identity.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Portfolio.Api.Contracts.DocumentManager;
 using Xunit;
 
@@ -21,6 +18,12 @@ public abstract class IntegrationTestBase : IAsyncLifetime
     private string? _connectionString;
     protected DocumentManagerWebApplicationFactory Factory { get; private set; } = null!;
     protected HttpClient Client { get; private set; } = null!;
+
+    /// <summary>
+    /// The currently authenticated test user. Set by AuthenticateAsync.
+    /// Use this to access UserId, assign/remove roles, or refresh the token.
+    /// </summary>
+    protected TestUser CurrentTestUser { get; private set; } = null!;
 
     public virtual async Task InitializeAsync()
     {
@@ -64,35 +67,48 @@ public abstract class IntegrationTestBase : IAsyncLifetime
 
     #region Auth Helpers
 
-    // DOCUMENT_REVIEWER role ID from migration (has approval:review permission)
-    private static readonly Guid DocumentReviewerRoleId = Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+    /// <summary>
+    /// Creates a test user, authenticates them, and optionally assigns additional roles.
+    /// New users automatically get the MANAGER role on registration.
+    /// DOCUMENT_REVIEWER role is always assigned for document manager tests.
+    /// </summary>
+    /// <param name="email">Optional email for the user (auto-generated if null)</param>
+    /// <param name="isAdmin">If true, assigns the ADMIN role to the user</param>
+    /// <param name="additionalRoles">Additional roles to assign</param>
+    /// <returns>The TestUser instance for further operations</returns>
+    protected async Task<TestUser> AuthenticateAsync(
+        string? email = null,
+        bool isAdmin = false,
+        params string[] additionalRoles)
+    {
+        var user = await TestUser.CreateAsync(Client, email);
+        user.Authenticate();
 
+        if (isAdmin)
+        {
+            await user.AssignRoleAsync("ADMIN");
+        }
+
+        foreach (var role in additionalRoles)
+        {
+            await user.AssignRoleAsync(role);
+        }
+
+        // Refresh token to get updated roles/permissions if roles were assigned
+        if (isAdmin || additionalRoles.Length > 0)
+        {
+            await user.RefreshTokenAsync();
+        }
+
+        CurrentTestUser = user;
+        return user;
+    }
+
+    [Obsolete("Use AuthenticateAsync instead")]
     protected async Task<string> RegisterAndLoginUserAsync(string email = "test@example.com")
     {
-        var registerRequest = new
-        {
-            Email = email,
-            Password = "SecurePassword123!",
-            FirstName = "Test",
-            LastName = "User"
-        };
-        var registerResponse = await PostAsync(Urls.Register, registerRequest);
-        var registerResult = await registerResponse.Content.ReadFromJsonAsync<RegisterResponseWrapper>();
-        var userId = registerResult!.Data!.UserId;
-
-        // Assign DOCUMENT_REVIEWER role to user (has approval:review permission)
-        using var scope = Factory.Services.CreateScope();
-        var identityContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-        await identityContext.Database.ExecuteSqlRawAsync($@"
-            INSERT INTO dotnet_identity.user_roles (""Id"", ""UserId"", ""RoleId"", ""AssignedAt"")
-            VALUES ('{Guid.NewGuid()}', '{userId}', '{DocumentReviewerRoleId}', '{DateTime.UtcNow:O}');
-        ");
-
-        var loginRequest = new { Email = email, Password = "SecurePassword123!" };
-        var response = await PostAsync(Urls.Login, loginRequest);
-        var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseWrapper>();
-
-        return loginResponse!.Data!.Token;
+        var user = await AuthenticateAsync(email);
+        return user.GetToken();
     }
 
     protected void SetAuthorizationHeader(string token)
@@ -100,12 +116,6 @@ public abstract class IntegrationTestBase : IAsyncLifetime
 
     protected void ClearAuthorizationHeader()
         => Client.DefaultRequestHeaders.Authorization = null;
-
-    protected async Task AuthenticateAsync(string email = "test@example.com")
-    {
-        var token = await RegisterAndLoginUserAsync(email);
-        SetAuthorizationHeader(token);
-    }
 
     #endregion
 
@@ -171,9 +181,4 @@ public abstract class IntegrationTestBase : IAsyncLifetime
     }
 
     #endregion
-
-    private record LoginResponseWrapper(bool Succeeded, LoginData? Data);
-    private record LoginData(string Token, Guid UserId, string Email, string FullName);
-    private record RegisterResponseWrapper(bool Succeeded, RegisterData? Data);
-    private record RegisterData(Guid UserId, string Email, string FullName);
 }

@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Common.Contracts;
 using Common.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace Portfolio.Api.Middleware;
 
@@ -75,6 +76,10 @@ public class ExceptionMiddleware
             DomainException domainEx =>
                 (HttpStatusCode.BadRequest, domainEx.Code, domainEx.Message),
 
+            // Database exceptions (unique constraint violations, etc.)
+            DbUpdateException dbEx when IsUniqueConstraintViolation(dbEx) =>
+                (HttpStatusCode.Conflict, "DUPLICATE_ENTRY", GetUniqueConstraintMessage(dbEx)),
+
             // Standard exceptions
             ArgumentException argEx =>
                 (HttpStatusCode.BadRequest, "INVALID_ARGUMENT", argEx.Message),
@@ -103,6 +108,14 @@ public class ExceptionMiddleware
         ex.Code.Contains("ALREADY_EXISTS", StringComparison.OrdinalIgnoreCase) ||
         ex.Code.Contains("DUPLICATE", StringComparison.OrdinalIgnoreCase) ||
         ex.Code.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException ex) =>
+        ex.InnerException?.Message?.Contains("duplicate key", StringComparison.OrdinalIgnoreCase) == true ||
+        ex.InnerException?.Message?.Contains("unique constraint", StringComparison.OrdinalIgnoreCase) == true ||
+        ex.InnerException?.Message?.Contains("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase) == true;
+
+    private static string GetUniqueConstraintMessage(DbUpdateException ex) =>
+        "A record with the same unique value already exists.";
 }
 
 public static class ExceptionMiddlewareExtensions
