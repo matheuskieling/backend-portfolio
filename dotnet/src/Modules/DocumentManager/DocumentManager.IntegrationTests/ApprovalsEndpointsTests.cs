@@ -124,7 +124,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
     public async Task ApproveStep_ValidRequest_ReturnsOk()
     {
         // Arrange
-        await AuthenticateAsync();
+        await AuthenticateAsync(additionalRoles: "DOCUMENT_REVIEWER");
         var document = await CreateDocumentWithVersionAsync();
         var workflow = await CreateWorkflowAsync("Single Step", (1, "REVIEWER"));
         var approval = await SubmitForApprovalAsync(document.Id, workflow.Id);
@@ -141,7 +141,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
     public async Task ApproveStep_WithoutComment_ReturnsOk()
     {
         // Arrange
-        await AuthenticateAsync();
+        await AuthenticateAsync(additionalRoles: "DOCUMENT_REVIEWER");
         var document = await CreateDocumentWithVersionAsync();
         var workflow = await CreateWorkflowAsync();
         var approval = await SubmitForApprovalAsync(document.Id, workflow.Id);
@@ -157,7 +157,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
     public async Task ApproveStep_MultiStepWorkflow_ProgressesToNextStep()
     {
         // Arrange
-        await AuthenticateAsync();
+        await AuthenticateAsync(additionalRoles: "DOCUMENT_REVIEWER");
         var document = await CreateDocumentWithVersionAsync();
         var workflow = await CreateWorkflowAsync("Two Step", (1, "REVIEWER"), (2, "MANAGER"));
         var approval = await SubmitForApprovalAsync(document.Id, workflow.Id);
@@ -194,7 +194,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
     public async Task ApproveStep_AlreadyCompletedWorkflow_ReturnsBadRequest()
     {
         // Arrange
-        await AuthenticateAsync();
+        await AuthenticateAsync(additionalRoles: "DOCUMENT_REVIEWER");
         var document = await CreateDocumentWithVersionAsync();
         var workflow = await CreateWorkflowAsync("Single Step", (1, "REVIEWER"));
         var approval = await SubmitForApprovalAsync(document.Id, workflow.Id);
@@ -230,7 +230,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
     public async Task RejectStep_ValidRequest_ReturnsOk()
     {
         // Arrange
-        await AuthenticateAsync();
+        await AuthenticateAsync(additionalRoles: "DOCUMENT_REVIEWER");
         var document = await CreateDocumentWithVersionAsync();
         var workflow = await CreateWorkflowAsync();
         var approval = await SubmitForApprovalAsync(document.Id, workflow.Id);
@@ -248,7 +248,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
     public async Task RejectStep_MultiStepWorkflow_ImmediatelyEndsWorkflow()
     {
         // Arrange
-        await AuthenticateAsync();
+        await AuthenticateAsync(additionalRoles: "DOCUMENT_REVIEWER");
         var document = await CreateDocumentWithVersionAsync();
         var workflow = await CreateWorkflowAsync("Three Step", (1, "REVIEWER"), (2, "MANAGER"), (3, "DIRECTOR"));
         var approval = await SubmitForApprovalAsync(document.Id, workflow.Id);
@@ -281,7 +281,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
     public async Task RejectStep_AlreadyRejectedWorkflow_ReturnsBadRequest()
     {
         // Arrange
-        await AuthenticateAsync();
+        await AuthenticateAsync(additionalRoles: "DOCUMENT_REVIEWER");
         var document = await CreateDocumentWithVersionAsync();
         var workflow = await CreateWorkflowAsync();
         var approval = await SubmitForApprovalAsync(document.Id, workflow.Id);
@@ -337,7 +337,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
     public async Task GetApprovalStatus_AfterApproval_ShowsProgress()
     {
         // Arrange
-        await AuthenticateAsync();
+        await AuthenticateAsync(additionalRoles: "DOCUMENT_REVIEWER");
         var document = await CreateDocumentWithVersionAsync();
         var workflow = await CreateWorkflowAsync("Two Step", (1, "REVIEWER"), (2, "MANAGER"));
         var approval = await SubmitForApprovalAsync(document.Id, workflow.Id);
@@ -358,7 +358,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
     public async Task GetApprovalStatus_FullyApproved_ShowsApprovedStatus()
     {
         // Arrange
-        await AuthenticateAsync();
+        await AuthenticateAsync(additionalRoles: "DOCUMENT_REVIEWER");
         var document = await CreateDocumentWithVersionAsync();
         var workflow = await CreateWorkflowAsync("Single Step", (1, "REVIEWER"));
         var approval = await SubmitForApprovalAsync(document.Id, workflow.Id);
@@ -377,7 +377,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
     public async Task GetApprovalStatus_Rejected_ShowsRejectedStatus()
     {
         // Arrange
-        await AuthenticateAsync();
+        await AuthenticateAsync(additionalRoles: "DOCUMENT_REVIEWER");
         var document = await CreateDocumentWithVersionAsync();
         var workflow = await CreateWorkflowAsync();
         var approval = await SubmitForApprovalAsync(document.Id, workflow.Id);
@@ -426,7 +426,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
     public async Task FullApprovalWorkflow_CreateSubmitApprove_DocumentBecomesApproved()
     {
         // Arrange
-        await AuthenticateAsync();
+        await AuthenticateAsync(additionalRoles: "DOCUMENT_REVIEWER");
         var document = await CreateDocumentWithVersionAsync("Important Contract");
         var workflow = await CreateWorkflowAsync("Contract Approval", (1, "LEGAL"), (2, "EXECUTIVE"));
         var approval = await SubmitForApprovalAsync(document.Id, workflow.Id);
@@ -452,7 +452,7 @@ public class ApprovalsEndpointsTests : IntegrationTestBase
     public async Task RejectionWorkflow_DocumentBecomesRejected()
     {
         // Arrange
-        await AuthenticateAsync();
+        await AuthenticateAsync(additionalRoles: "DOCUMENT_REVIEWER");
         var document = await CreateDocumentWithVersionAsync("Rejected Document");
         var workflow = await CreateWorkflowAsync("Review", (1, "REVIEWER"));
         var approval = await SubmitForApprovalAsync(document.Id, workflow.Id);
