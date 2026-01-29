@@ -58,12 +58,12 @@ public class DocumentManagerWebApplicationFactory : WebApplicationFactory<Progra
 
         using var scope = host.Services.CreateScope();
 
-        // Ensure both schemas are created
+        // Use Migrate() instead of EnsureCreated() to run seed migrations
         var identityContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-        identityContext.Database.EnsureCreated();
+        identityContext.Database.Migrate();
 
         var documentContext = scope.ServiceProvider.GetRequiredService<DocumentManagerDbContext>();
-        documentContext.Database.EnsureCreated();
+        documentContext.Database.Migrate();
 
         return host;
     }

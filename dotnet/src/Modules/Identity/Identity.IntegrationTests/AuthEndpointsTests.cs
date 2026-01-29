@@ -1,12 +1,14 @@
 using System.Net;
 using Common.IntegrationTests;
 using Identity.IntegrationTests.Infrastructure;
+using Portfolio.Api.Contracts.Identity;
 using Xunit;
 
 namespace Identity.IntegrationTests;
 
 public class AuthEndpointsTests : IntegrationTestBase
 {
+    #region Register
 
     [Fact]
     public async Task Register_WithValidData_ReturnsCreatedWithUserInfo()
@@ -24,7 +26,7 @@ public class AuthEndpointsTests : IntegrationTestBase
         var response = await PostAsync("/api/identity/register", request);
 
         // Assert
-        var apiResponse = await response.ValidateSuccessAsync<RegisterResponse>(HttpStatusCode.Created);
+        var apiResponse = await response.ValidateSuccessAsync<RegisterUserResponse>(HttpStatusCode.Created);
         Assert.NotEqual(Guid.Empty, apiResponse.Data!.UserId);
         Assert.Equal("test@example.com", apiResponse.Data.Email);
         Assert.Equal("John Doe", apiResponse.Data.FullName);
@@ -70,24 +72,21 @@ public class AuthEndpointsTests : IntegrationTestBase
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    [Fact(Skip = "Password strength validation not implemented yet")]
-    public async Task Register_WithWeakPassword_ReturnsBadRequest()
+    [Fact]
+    public async Task Register_NewUser_GetsManagerRoleAutomatically()
     {
-        // Arrange
-        var request = new
-        {
-            Email = "test@example.com",
-            Password = "weak",
-            FirstName = "John",
-            LastName = "Doe"
-        };
+        // Arrange & Act
+        await AuthenticateAsync();
 
-        // Act
-        var response = await PostAsync("/api/identity/register", request);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        // Assert - Get current user to verify roles
+        var response = await GetAsync("/api/admin/me");
+        var apiResponse = await response.ValidateSuccessAsync<UserDetailResponse>(HttpStatusCode.OK);
+        Assert.Contains("MANAGER", apiResponse.Data!.Roles);
     }
+
+    #endregion
+
+    #region Login
 
     [Fact]
     public async Task Login_WithValidCredentials_ReturnsOkWithToken()
@@ -199,6 +198,22 @@ public class AuthEndpointsTests : IntegrationTestBase
         Assert.Contains("Smith", payload);
     }
 
+    [Fact]
+    public async Task Login_TokenContainsRoles()
+    {
+        // Arrange & Act
+        await AuthenticateAsync();
+
+        // Decode JWT and verify roles
+        var token = CurrentTestUser.GetToken();
+        var tokenParts = token.Split('.');
+        var payload = System.Text.Encoding.UTF8.GetString(
+            Convert.FromBase64String(PadBase64(tokenParts[1])));
+
+        // Assert - MANAGER role should be in the token
+        Assert.Contains("MANAGER", payload);
+    }
+
     private static string PadBase64(string base64)
     {
         switch (base64.Length % 4)
@@ -209,6 +224,5 @@ public class AuthEndpointsTests : IntegrationTestBase
         }
     }
 
-    private record RegisterResponse(Guid UserId, string Email, string FullName);
-    private record LoginResponse(string Token, Guid UserId, string Email, string FullName, IReadOnlyCollection<string> Roles);
+    #endregion
 }

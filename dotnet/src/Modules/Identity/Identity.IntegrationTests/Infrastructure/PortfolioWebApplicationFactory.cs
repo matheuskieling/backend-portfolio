@@ -1,3 +1,4 @@
+using DocumentManager.Infrastructure.Persistence;
 using Identity.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -31,15 +32,22 @@ public class PortfolioWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureTestServices(services =>
         {
-            var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<IdentityDbContext>));
+            // Remove existing DbContext registrations
+            var descriptorsToRemove = services.Where(
+                d => d.ServiceType == typeof(DbContextOptions<IdentityDbContext>) ||
+                     d.ServiceType == typeof(DbContextOptions<DocumentManagerDbContext>))
+                .ToList();
 
-            if (descriptor != null)
+            foreach (var descriptor in descriptorsToRemove)
             {
                 services.Remove(descriptor);
             }
 
+            // Re-add with test database connection
             services.AddDbContext<IdentityDbContext>(options =>
+                options.UseNpgsql(_connectionString));
+
+            services.AddDbContext<DocumentManagerDbContext>(options =>
                 options.UseNpgsql(_connectionString));
         });
     }
@@ -49,8 +57,13 @@ public class PortfolioWebApplicationFactory : WebApplicationFactory<Program>
         var host = base.CreateHost(builder);
 
         using var scope = host.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-        dbContext.Database.EnsureCreated();
+
+        // Use Migrate() instead of EnsureCreated() to run seed migrations
+        var identityContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        identityContext.Database.Migrate();
+
+        var documentContext = scope.ServiceProvider.GetRequiredService<DocumentManagerDbContext>();
+        documentContext.Database.Migrate();
 
         return host;
     }

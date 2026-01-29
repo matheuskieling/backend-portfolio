@@ -8,6 +8,12 @@ public static class MigrationConfiguration
 {
     public static void ApplyMigrations(this WebApplication app)
     {
+        // Skip migrations in Testing environment (tests use EnsureCreated())
+        if (app.Environment.EnvironmentName == "Testing")
+        {
+            return;
+        }
+
         using var scope = app.Services.CreateScope();
 
         // Identity module
