@@ -32,6 +32,7 @@ Each implementation follows identical business rules and architectural decisions
 |--------|-------------|---------------|
 | **Identity** | Authentication, JWT, RBAC with roles and permissions | [.NET](dotnet/docs/identity.md) |
 | **DocumentManager** | Document management with multi-step approval workflows | [.NET](dotnet/docs/document-manager.md) |
+| **Scheduling** | Appointment scheduling with availability management and booking | [.NET](dotnet/docs/scheduling.md) |
 
 ## Philosophy
 
