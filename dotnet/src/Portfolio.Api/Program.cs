@@ -4,6 +4,7 @@ using Identity.Infrastructure;
 using Portfolio.Api;
 using Portfolio.Api.Configuration;
 using Portfolio.Api.Middleware;
+using Scheduling.Infrastructure;
 
 // Load .env file from solution root
 var solutionRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
@@ -18,6 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Modules
 builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddDocumentManagerModule(builder.Configuration);
+builder.Services.AddSchedulingModule(builder.Configuration);
 
 // API services (authentication, controllers, etc.)
 builder.Services.AddApiServices(builder.Configuration, builder.Environment);
