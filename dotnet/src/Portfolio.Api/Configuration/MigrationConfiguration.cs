@@ -1,6 +1,7 @@
 using DocumentManager.Infrastructure.Persistence;
 using Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Scheduling.Infrastructure.Persistence;
 
 namespace Portfolio.Api.Configuration;
 
@@ -23,5 +24,9 @@ public static class MigrationConfiguration
         // DocumentManager module
         var documentManagerDb = scope.ServiceProvider.GetRequiredService<DocumentManagerDbContext>();
         documentManagerDb.Database.Migrate();
+
+        // Scheduling module
+        var schedulingDb = scope.ServiceProvider.GetRequiredService<SchedulingDbContext>();
+        schedulingDb.Database.Migrate();
     }
 }
