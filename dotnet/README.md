@@ -11,6 +11,7 @@ docker-compose up -d
 # Run migrations
 dotnet ef database update --project src/Modules/Identity/Identity.Infrastructure
 dotnet ef database update --project src/Modules/DocumentManager/DocumentManager.Infrastructure
+dotnet ef database update --project src/Modules/Scheduling/Scheduling.Infrastructure
 
 # Run the API
 dotnet run --project src/Portfolio.Api
@@ -22,6 +23,7 @@ dotnet run --project src/Portfolio.Api
 |--------|-------------|---------------|
 | **Identity** | Authentication, authorization, JWT, RBAC, Admin Panel | [View docs](docs/identity.md) |
 | **DocumentManager** | Document management with approval workflows | [View docs](docs/document-manager.md) |
+| **Scheduling** | Appointment scheduling with availability management | [View docs](docs/scheduling.md) |
 
 ## Technology Stack
 
@@ -43,10 +45,14 @@ src/
     │   ├── Identity.Domain
     │   ├── Identity.Application
     │   └── Identity.Infrastructure
-    └── DocumentManager/     # Document management module
-        ├── DocumentManager.Domain
-        ├── DocumentManager.Application
-        └── DocumentManager.Infrastructure
+    ├── DocumentManager/     # Document management module
+    │   ├── DocumentManager.Domain
+    │   ├── DocumentManager.Application
+    │   └── DocumentManager.Infrastructure
+    └── Scheduling/          # Appointment scheduling module
+        ├── Scheduling.Domain
+        ├── Scheduling.Application
+        └── Scheduling.Infrastructure
 ```
 
 ## API Endpoints Overview
@@ -88,5 +94,25 @@ src/
 - `GET /workflows` - List workflows
 - `POST /approvals/{id}/approve` - Approve step
 - `POST /approvals/{id}/reject` - Reject step
+
+### Scheduling (`/api/scheduling`)
+- `POST /profiles` - Create scheduling profile
+- `GET /profiles/me` - List my profiles
+- `GET /profiles/{id}` - Get profile (public)
+- `DELETE /profiles/{id}` - Delete profile
+- `POST /profiles/{id}/schedules` - Create recurring schedule
+- `GET /profiles/{id}/schedules` - List schedules
+- `POST /profiles/{id}/schedules/{id}/generate` - Generate availabilities
+- `POST /profiles/{id}/schedules/{id}/pause` - Pause schedule
+- `POST /profiles/{id}/schedules/{id}/resume` - Resume schedule
+- `POST /profiles/{id}/availabilities` - Create single availability
+- `GET /profiles/{id}/availabilities` - List availabilities
+- `GET /profiles/{id}/slots` - Get available slots (public)
+- `POST /profiles/{id}/slots/block` - Block slots
+- `POST /profiles/{id}/slots/unblock` - Unblock slots
+- `POST /profiles/{id}/appointments` - Book appointment
+- `GET /profiles/{id}/appointments` - List appointments
+- `POST /profiles/{id}/appointments/{id}/cancel` - Cancel appointment
+- `POST /profiles/{id}/appointments/{id}/complete` - Complete appointment
 
 See module documentation for detailed API specifications.
