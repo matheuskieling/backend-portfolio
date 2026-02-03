@@ -34,6 +34,19 @@ Each implementation follows identical business rules and architectural decisions
 | **DocumentManager** | Document management with multi-step approval workflows | [.NET](dotnet/docs/document-manager.md) |
 | **Scheduling** | Appointment scheduling with availability management and booking | [.NET](dotnet/docs/scheduling.md) |
 
+## API Documentation (Swagger)
+
+All endpoints are documented in a single Swagger UI. Since this is a **modular monolith** — a cost-effective architecture that runs all modules within one deployed application — there's only one API instance serving all modules.
+
+To maintain clarity, endpoints are organized by **tags** following the pattern `Module - Feature` and sorted **alphabetically**. This makes it easy to identify which module each endpoint belongs to:
+
+- `Document Manager - Approvals`
+- `Document Manager - Documents`
+- `Identity - Admin Panel`
+- `Identity - Auth`
+- `Scheduling - Appointments`
+- ...
+
 ## Philosophy
 
 - Clarity over cleverness
