@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class InvalidStoragePathException : DomainException
+public sealed class InvalidStoragePathException : ValidationException
 {
     private const string ErrorCode = "INVALID_STORAGE_PATH";
 

@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class DocumentNotFoundException : DomainException
+public sealed class DocumentNotFoundException : NotFoundException
 {
     private const string ErrorCode = "DOCUMENT_NOT_FOUND";
 

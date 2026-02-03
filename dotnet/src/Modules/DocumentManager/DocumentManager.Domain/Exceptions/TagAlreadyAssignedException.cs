@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class TagAlreadyAssignedException : DomainException
+public sealed class TagAlreadyAssignedException : ConflictException
 {
     private const string ErrorCode = "TAG_ALREADY_ASSIGNED";
 

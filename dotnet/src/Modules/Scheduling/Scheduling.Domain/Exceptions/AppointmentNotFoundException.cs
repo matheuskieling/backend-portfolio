@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class AppointmentNotFoundException : DomainException
+public sealed class AppointmentNotFoundException : NotFoundException
 {
     private const string ErrorCode = "APPOINTMENT_NOT_FOUND";
 

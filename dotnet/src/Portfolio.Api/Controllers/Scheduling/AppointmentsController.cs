@@ -1,5 +1,4 @@
 using Common.Contracts;
-using Common.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Portfolio.Api.Contracts.Scheduling;
@@ -64,32 +63,25 @@ public class AppointmentsController : ControllerBase
         [FromBody] BookAppointmentRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new BookAppointmentCommand(
-                profileId,
-                request.GuestProfileId,
-                request.TimeSlotId);
+        var command = new BookAppointmentCommand(
+            profileId,
+            request.GuestProfileId,
+            request.TimeSlotId);
 
-            var result = await _bookAppointmentHandler.HandleAsync(command, cancellationToken);
+        var result = await _bookAppointmentHandler.HandleAsync(command, cancellationToken);
 
-            return ApiResponse.Created(new AppointmentResponse(
-                result.Id,
-                result.TimeSlotId,
-                result.HostProfileId,
-                result.GuestProfileId,
-                result.StartTime,
-                result.EndTime,
-                result.Status.ToString(),
-                false,
-                result.CreatedAt,
-                null,
-                null));
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainException<AppointmentResponse>(ex);
-        }
+        return ApiResponse.Created(new AppointmentResponse(
+            result.Id,
+            result.TimeSlotId,
+            result.HostProfileId,
+            result.GuestProfileId,
+            result.StartTime,
+            result.EndTime,
+            result.Status.ToString(),
+            false,
+            result.CreatedAt,
+            null,
+            null));
     }
 
     /// <summary>
@@ -113,38 +105,31 @@ public class AppointmentsController : ControllerBase
         [FromQuery] string? status = null,
         CancellationToken cancellationToken = default)
     {
-        try
+        AppointmentStatus? statusFilter = null;
+        if (!string.IsNullOrEmpty(status))
         {
-            AppointmentStatus? statusFilter = null;
-            if (!string.IsNullOrEmpty(status))
-            {
-                if (!Enum.TryParse<AppointmentStatus>(status, true, out var parsed))
-                    return ApiResponse.Failure<IReadOnlyList<AppointmentResponse>>("INVALID_STATUS", $"Invalid status: {status}");
-                statusFilter = parsed;
-            }
-
-            var query = new GetAppointmentsQuery(profileId, statusFilter);
-            var result = await _getAppointmentsHandler.HandleAsync(query, cancellationToken);
-
-            var appointments = result.Select(a => new AppointmentResponse(
-                a.Id,
-                a.TimeSlotId,
-                a.HostProfileId,
-                a.GuestProfileId,
-                a.StartTime,
-                a.EndTime,
-                a.Status.ToString(),
-                a.IsHost,
-                a.CreatedAt,
-                a.CanceledAt,
-                a.CompletedAt)).ToList();
-
-            return ApiResponse.Success<IReadOnlyList<AppointmentResponse>>(appointments);
+            if (!Enum.TryParse<AppointmentStatus>(status, true, out var parsed))
+                throw new ArgumentException($"Invalid status: {status}");
+            statusFilter = parsed;
         }
-        catch (DomainException ex)
-        {
-            return HandleDomainException<IReadOnlyList<AppointmentResponse>>(ex);
-        }
+
+        var query = new GetAppointmentsQuery(profileId, statusFilter);
+        var result = await _getAppointmentsHandler.HandleAsync(query, cancellationToken);
+
+        var appointments = result.Select(a => new AppointmentResponse(
+            a.Id,
+            a.TimeSlotId,
+            a.HostProfileId,
+            a.GuestProfileId,
+            a.StartTime,
+            a.EndTime,
+            a.Status.ToString(),
+            a.IsHost,
+            a.CreatedAt,
+            a.CanceledAt,
+            a.CompletedAt)).ToList();
+
+        return ApiResponse.Success<IReadOnlyList<AppointmentResponse>>(appointments);
     }
 
     /// <summary>
@@ -168,29 +153,22 @@ public class AppointmentsController : ControllerBase
         Guid appointmentId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var query = new GetAppointmentByIdQuery(profileId, appointmentId);
-            var result = await _getAppointmentByIdHandler.HandleAsync(query, cancellationToken);
+        var query = new GetAppointmentByIdQuery(profileId, appointmentId);
+        var result = await _getAppointmentByIdHandler.HandleAsync(query, cancellationToken);
 
-            return ApiResponse.Success(new AppointmentDetailResponse(
-                result.Id,
-                result.TimeSlotId,
-                result.HostProfileId,
-                result.GuestProfileId,
-                result.StartTime,
-                result.EndTime,
-                result.Status.ToString(),
-                result.IsHost,
-                result.CreatedAt,
-                result.CanceledAt,
-                result.CanceledBy,
-                result.CompletedAt));
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainException<AppointmentDetailResponse>(ex);
-        }
+        return ApiResponse.Success(new AppointmentDetailResponse(
+            result.Id,
+            result.TimeSlotId,
+            result.HostProfileId,
+            result.GuestProfileId,
+            result.StartTime,
+            result.EndTime,
+            result.Status.ToString(),
+            result.IsHost,
+            result.CreatedAt,
+            result.CanceledAt,
+            result.CanceledBy,
+            result.CompletedAt));
     }
 
     /// <summary>
@@ -216,21 +194,9 @@ public class AppointmentsController : ControllerBase
         Guid appointmentId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CancelAppointmentCommand(profileId, appointmentId);
-            await _cancelAppointmentHandler.HandleAsync(command, cancellationToken);
-            return NoContent();
-        }
-        catch (DomainException ex)
-        {
-            return ex.Code switch
-            {
-                "SCHEDULING_PROFILE_NOT_FOUND" or "APPOINTMENT_NOT_FOUND" or "AVAILABILITY_NOT_FOUND" => ApiResponse.NotFound<object>(ex.Message),
-                "UNAUTHORIZED_SCHEDULING_ACCESS" => ApiResponse.Forbidden<object>(ex.Message),
-                _ => ApiResponse.Failure<object>(ex.Code, ex.Message)
-            };
-        }
+        var command = new CancelAppointmentCommand(profileId, appointmentId);
+        await _cancelAppointmentHandler.HandleAsync(command, cancellationToken);
+        return NoContent();
     }
 
     /// <summary>
@@ -256,31 +222,8 @@ public class AppointmentsController : ControllerBase
         Guid appointmentId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CompleteAppointmentCommand(profileId, appointmentId);
-            await _completeAppointmentHandler.HandleAsync(command, cancellationToken);
-            return NoContent();
-        }
-        catch (DomainException ex)
-        {
-            return ex.Code switch
-            {
-                "SCHEDULING_PROFILE_NOT_FOUND" or "APPOINTMENT_NOT_FOUND" => ApiResponse.NotFound<object>(ex.Message),
-                "UNAUTHORIZED_SCHEDULING_ACCESS" => ApiResponse.Forbidden<object>(ex.Message),
-                _ => ApiResponse.Failure<object>(ex.Code, ex.Message)
-            };
-        }
-    }
-
-    private static ApiResponse<T> HandleDomainException<T>(DomainException ex)
-    {
-        return ex.Code switch
-        {
-            "SCHEDULING_PROFILE_NOT_FOUND" or "APPOINTMENT_NOT_FOUND" or "TIME_SLOT_NOT_FOUND" => ApiResponse.NotFound<T>(ex.Message),
-            "UNAUTHORIZED_SCHEDULING_ACCESS" => ApiResponse.Forbidden<T>(ex.Message),
-            "SELF_BOOKING_NOT_ALLOWED" or "TIME_SLOT_NOT_AVAILABLE" or "BOOKING_WINDOW_VIOLATION" => ApiResponse.Failure<T>(ex.Code, ex.Message),
-            _ => ApiResponse.Failure<T>(ex.Code, ex.Message)
-        };
+        var command = new CompleteAppointmentCommand(profileId, appointmentId);
+        await _completeAppointmentHandler.HandleAsync(command, cancellationToken);
+        return NoContent();
     }
 }

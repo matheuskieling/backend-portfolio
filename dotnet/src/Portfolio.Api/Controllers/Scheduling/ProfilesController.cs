@@ -1,5 +1,4 @@
 using Common.Contracts;
-using Common.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Portfolio.Api.Contracts.Scheduling;
@@ -54,29 +53,22 @@ public class ProfilesController : ControllerBase
         [FromBody] CreateProfileRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            if (!Enum.TryParse<ProfileType>(request.Type, true, out var profileType))
-                return ApiResponse.Failure<ProfileResponse>("INVALID_PROFILE_TYPE", $"Invalid profile type: {request.Type}. Must be 'Individual' or 'Business'.");
+        if (!Enum.TryParse<ProfileType>(request.Type, true, out var profileType))
+            throw new ArgumentException($"Invalid profile type: {request.Type}. Must be 'Individual' or 'Business'.");
 
-            var command = new CreateProfileCommand(
-                profileType,
-                request.DisplayName,
-                request.BusinessName);
+        var command = new CreateProfileCommand(
+            profileType,
+            request.DisplayName,
+            request.BusinessName);
 
-            var result = await _createProfileHandler.HandleAsync(command, cancellationToken);
+        var result = await _createProfileHandler.HandleAsync(command, cancellationToken);
 
-            return ApiResponse.Created(new ProfileResponse(
-                result.Id,
-                result.Type.ToString(),
-                result.DisplayName,
-                result.BusinessName,
-                DateTime.UtcNow));
-        }
-        catch (DomainException ex)
-        {
-            return ApiResponse.Failure<ProfileResponse>(ex.Code, ex.Message);
-        }
+        return ApiResponse.Created(new ProfileResponse(
+            result.Id,
+            result.Type.ToString(),
+            result.DisplayName,
+            result.BusinessName,
+            DateTime.UtcNow));
     }
 
     /// <summary>
@@ -120,22 +112,15 @@ public class ProfilesController : ControllerBase
         Guid profileId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var query = new GetProfileByIdQuery(profileId);
-            var result = await _getProfileByIdHandler.HandleAsync(query, cancellationToken);
+        var query = new GetProfileByIdQuery(profileId);
+        var result = await _getProfileByIdHandler.HandleAsync(query, cancellationToken);
 
-            return ApiResponse.Success(new ProfileResponse(
-                result.Id,
-                result.Type.ToString(),
-                result.DisplayName,
-                result.BusinessName,
-                result.CreatedAt));
-        }
-        catch (DomainException ex)
-        {
-            return ApiResponse.NotFound<ProfileResponse>(ex.Message);
-        }
+        return ApiResponse.Success(new ProfileResponse(
+            result.Id,
+            result.Type.ToString(),
+            result.DisplayName,
+            result.BusinessName,
+            result.CreatedAt));
     }
 
     /// <summary>
@@ -159,19 +144,8 @@ public class ProfilesController : ControllerBase
         Guid profileId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new DeleteProfileCommand(profileId);
-            await _deleteProfileHandler.HandleAsync(command, cancellationToken);
-            return NoContent();
-        }
-        catch (DomainException ex)
-        {
-            if (ex.Code == "SCHEDULING_PROFILE_NOT_FOUND")
-                return ApiResponse.NotFound<object>(ex.Message);
-            if (ex.Code == "UNAUTHORIZED_SCHEDULING_ACCESS")
-                return ApiResponse.Forbidden<object>(ex.Message);
-            return ApiResponse.Failure<object>(ex.Code, ex.Message);
-        }
+        var command = new DeleteProfileCommand(profileId);
+        await _deleteProfileHandler.HandleAsync(command, cancellationToken);
+        return NoContent();
     }
 }

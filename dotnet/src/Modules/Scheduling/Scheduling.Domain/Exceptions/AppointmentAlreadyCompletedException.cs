@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class AppointmentAlreadyCompletedException : DomainException
+public sealed class AppointmentAlreadyCompletedException : ValidationException
 {
     private const string ErrorCode = "APPOINTMENT_ALREADY_COMPLETED";
 

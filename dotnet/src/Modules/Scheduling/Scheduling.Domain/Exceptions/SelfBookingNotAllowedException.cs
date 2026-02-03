@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class SelfBookingNotAllowedException : DomainException
+public sealed class SelfBookingNotAllowedException : ValidationException
 {
     private const string ErrorCode = "SELF_BOOKING_NOT_ALLOWED";
 

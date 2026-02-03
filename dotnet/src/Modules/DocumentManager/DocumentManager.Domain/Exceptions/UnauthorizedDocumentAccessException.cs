@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class UnauthorizedDocumentAccessException : DomainException
+public sealed class UnauthorizedDocumentAccessException : ForbiddenException
 {
     private const string ErrorCode = "UNAUTHORIZED_DOCUMENT_ACCESS";
 

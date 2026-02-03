@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class InvalidMimeTypeException : DomainException
+public sealed class InvalidMimeTypeException : ValidationException
 {
     private const string ErrorCode = "INVALID_MIME_TYPE";
 

@@ -11,14 +11,14 @@ public class AppointmentEndpointsTests : IntegrationTestBase
     [Fact]
     public async Task BookAppointment_WithValidData_ReturnsCreated()
     {
-        // Arrange - Create host profile
+        // Arrange - Create host profile (must be Business)
         await AuthenticateAsync();
-        var hostProfile = await CreateIndividualProfileAsync("Host");
+        var hostProfile = await CreateBusinessProfileAsync("Host Clinic", "Host");
         var startTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(7).AddHours(9), TimeSpan.Zero);
         var availability = await CreateAvailabilityAsync(hostProfile.Id, startTime, startTime.AddHours(2), 60);
         var timeSlotId = availability.TimeSlots.First().Id;
 
-        // Create guest user and profile
+        // Create guest user and profile (must be Individual)
         await AuthenticateAsync();
         var guestProfile = await CreateIndividualProfileAsync("Guest");
 
@@ -36,28 +36,73 @@ public class AppointmentEndpointsTests : IntegrationTestBase
     [Fact]
     public async Task BookAppointment_SelfBooking_ReturnsBadRequest()
     {
-        // Arrange
+        // Arrange - Same user has both a Business and Individual profile
         await AuthenticateAsync();
-        var profile = await CreateIndividualProfileAsync();
+        var businessProfile = await CreateBusinessProfileAsync("My Clinic");
+        var individualProfile = await CreateIndividualProfileAsync();
 
         var startTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(7).AddHours(9), TimeSpan.Zero);
-        var availability = await CreateAvailabilityAsync(profile.Id, startTime, startTime.AddHours(2), 60);
+        var availability = await CreateAvailabilityAsync(businessProfile.Id, startTime, startTime.AddHours(2), 60);
         var timeSlotId = availability.TimeSlots.First().Id;
 
-        // Act - Try to book own slot
-        var request = new BookAppointmentRequest(profile.Id, timeSlotId);
-        var response = await PostAsync(Urls.Appointments(profile.Id), request);
+        // Act - Try to book own business profile using own individual profile
+        var request = new BookAppointmentRequest(individualProfile.Id, timeSlotId);
+        var response = await PostAsync(Urls.Appointments(businessProfile.Id), request);
 
         // Assert
         await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "cannot book");
     }
 
     [Fact]
-    public async Task BookAppointment_AlreadyBookedSlot_ReturnsBadRequest()
+    public async Task BookAppointment_HostIsIndividual_ReturnsBadRequest()
     {
-        // Arrange - Setup host
+        // Arrange - Host is Individual (invalid)
         await AuthenticateAsync();
         var hostProfile = await CreateIndividualProfileAsync("Host");
+        var startTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(7).AddHours(9), TimeSpan.Zero);
+        var availability = await CreateAvailabilityAsync(hostProfile.Id, startTime, startTime.AddHours(2), 60);
+        var timeSlotId = availability.TimeSlots.First().Id;
+
+        // Guest is Individual (valid)
+        await AuthenticateAsync();
+        var guestProfile = await CreateIndividualProfileAsync("Guest");
+
+        // Act
+        var request = new BookAppointmentRequest(guestProfile.Id, timeSlotId);
+        var response = await PostAsync(Urls.Appointments(hostProfile.Id), request);
+
+        // Assert
+        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "business profiles can receive");
+    }
+
+    [Fact]
+    public async Task BookAppointment_GuestIsBusiness_ReturnsBadRequest()
+    {
+        // Arrange - Host is Business (valid)
+        await AuthenticateAsync();
+        var hostProfile = await CreateBusinessProfileAsync("Host Clinic", "Host");
+        var startTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(7).AddHours(9), TimeSpan.Zero);
+        var availability = await CreateAvailabilityAsync(hostProfile.Id, startTime, startTime.AddHours(2), 60);
+        var timeSlotId = availability.TimeSlots.First().Id;
+
+        // Guest is Business (invalid)
+        await AuthenticateAsync();
+        var guestProfile = await CreateBusinessProfileAsync("Guest Clinic", "Guest");
+
+        // Act
+        var request = new BookAppointmentRequest(guestProfile.Id, timeSlotId);
+        var response = await PostAsync(Urls.Appointments(hostProfile.Id), request);
+
+        // Assert
+        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "individual profiles can book");
+    }
+
+    [Fact]
+    public async Task BookAppointment_AlreadyBookedSlot_ReturnsBadRequest()
+    {
+        // Arrange - Setup host (must be Business)
+        await AuthenticateAsync();
+        var hostProfile = await CreateBusinessProfileAsync("Host Clinic", "Host");
         var startTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(7).AddHours(9), TimeSpan.Zero);
         var availability = await CreateAvailabilityAsync(hostProfile.Id, startTime, startTime.AddHours(2), 60);
         var timeSlotId = availability.TimeSlots.First().Id;
@@ -82,13 +127,13 @@ public class AppointmentEndpointsTests : IntegrationTestBase
     [Fact]
     public async Task GetAppointments_ReturnsAppointmentsForProfile()
     {
-        // Arrange
+        // Arrange - Host must be Business
         await AuthenticateAsync();
-        var hostProfile = await CreateIndividualProfileAsync("Host");
+        var hostProfile = await CreateBusinessProfileAsync("Host Clinic", "Host");
         var startTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(7).AddHours(9), TimeSpan.Zero);
         var availability = await CreateAvailabilityAsync(hostProfile.Id, startTime, startTime.AddHours(3), 60);
 
-        // Guest books two appointments
+        // Guest books two appointments (must be Individual)
         await AuthenticateAsync();
         var guestProfile = await CreateIndividualProfileAsync("Guest");
         await BookAppointmentAsync(hostProfile.Id, guestProfile.Id, availability.TimeSlots[0].Id);
@@ -106,13 +151,13 @@ public class AppointmentEndpointsTests : IntegrationTestBase
     [Fact]
     public async Task GetAppointments_AsHost_ShowsIsHostTrue()
     {
-        // Arrange - Create host and save the user reference
+        // Arrange - Create host (Business) and save the user reference
         var hostUser = await AuthenticateAsync();
-        var hostProfile = await CreateIndividualProfileAsync("Host");
+        var hostProfile = await CreateBusinessProfileAsync("Host Clinic", "Host");
         var startTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(7).AddHours(9), TimeSpan.Zero);
         var availability = await CreateAvailabilityAsync(hostProfile.Id, startTime, startTime.AddHours(2), 60);
 
-        // Guest books
+        // Guest books (Individual)
         await AuthenticateAsync();
         var guestProfile = await CreateIndividualProfileAsync("Guest");
         await BookAppointmentAsync(hostProfile.Id, guestProfile.Id, availability.TimeSlots.First().Id);
@@ -132,12 +177,13 @@ public class AppointmentEndpointsTests : IntegrationTestBase
     [Fact]
     public async Task CancelAppointment_AsGuest_ReturnsNoContent()
     {
-        // Arrange
+        // Arrange - Host must be Business
         await AuthenticateAsync();
-        var hostProfile = await CreateIndividualProfileAsync("Host");
+        var hostProfile = await CreateBusinessProfileAsync("Host Clinic", "Host");
         var startTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(7).AddHours(9), TimeSpan.Zero);
         var availability = await CreateAvailabilityAsync(hostProfile.Id, startTime, startTime.AddHours(2), 60);
 
+        // Guest must be Individual
         await AuthenticateAsync();
         var guestProfile = await CreateIndividualProfileAsync("Guest");
         var appointment = await BookAppointmentAsync(hostProfile.Id, guestProfile.Id, availability.TimeSlots.First().Id);
@@ -157,12 +203,13 @@ public class AppointmentEndpointsTests : IntegrationTestBase
     [Fact]
     public async Task CancelAppointment_AlreadyCanceled_ReturnsBadRequest()
     {
-        // Arrange
+        // Arrange - Host must be Business
         await AuthenticateAsync();
-        var hostProfile = await CreateIndividualProfileAsync("Host");
+        var hostProfile = await CreateBusinessProfileAsync("Host Clinic", "Host");
         var startTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(7).AddHours(9), TimeSpan.Zero);
         var availability = await CreateAvailabilityAsync(hostProfile.Id, startTime, startTime.AddHours(2), 60);
 
+        // Guest must be Individual
         await AuthenticateAsync();
         var guestProfile = await CreateIndividualProfileAsync("Guest");
         var appointment = await BookAppointmentAsync(hostProfile.Id, guestProfile.Id, availability.TimeSlots.First().Id);
@@ -180,13 +227,14 @@ public class AppointmentEndpointsTests : IntegrationTestBase
     [Fact]
     public async Task CancelAppointment_ReleasesSlot()
     {
-        // Arrange
+        // Arrange - Host must be Business
         await AuthenticateAsync();
-        var hostProfile = await CreateIndividualProfileAsync("Host");
+        var hostProfile = await CreateBusinessProfileAsync("Host Clinic", "Host");
         var startTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(7).AddHours(9), TimeSpan.Zero);
         var availability = await CreateAvailabilityAsync(hostProfile.Id, startTime, startTime.AddHours(2), 60);
         var slotId = availability.TimeSlots.First().Id;
 
+        // Guest must be Individual
         await AuthenticateAsync();
         var guestProfile = await CreateIndividualProfileAsync("Guest");
         var appointment = await BookAppointmentAsync(hostProfile.Id, guestProfile.Id, slotId);
@@ -207,12 +255,13 @@ public class AppointmentEndpointsTests : IntegrationTestBase
     [Fact]
     public async Task GetAppointments_WithStatusFilter_ReturnsFilteredResults()
     {
-        // Arrange
+        // Arrange - Host must be Business
         await AuthenticateAsync();
-        var hostProfile = await CreateIndividualProfileAsync("Host");
+        var hostProfile = await CreateBusinessProfileAsync("Host Clinic", "Host");
         var startTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(7).AddHours(9), TimeSpan.Zero);
         var availability = await CreateAvailabilityAsync(hostProfile.Id, startTime, startTime.AddHours(3), 60);
 
+        // Guest must be Individual
         await AuthenticateAsync();
         var guestProfile = await CreateIndividualProfileAsync("Guest");
         var appointment1 = await BookAppointmentAsync(hostProfile.Id, guestProfile.Id, availability.TimeSlots[0].Id);

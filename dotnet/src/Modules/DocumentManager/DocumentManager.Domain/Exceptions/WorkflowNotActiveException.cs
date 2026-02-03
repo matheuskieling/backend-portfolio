@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class WorkflowNotActiveException : DomainException
+public sealed class WorkflowNotActiveException : ValidationException
 {
     private const string ErrorCode = "WORKFLOW_NOT_ACTIVE";
 

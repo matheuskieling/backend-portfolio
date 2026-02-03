@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class UnauthorizedSchedulingAccessException : DomainException
+public sealed class UnauthorizedSchedulingAccessException : ForbiddenException
 {
     private const string ErrorCode = "UNAUTHORIZED_SCHEDULING_ACCESS";
 

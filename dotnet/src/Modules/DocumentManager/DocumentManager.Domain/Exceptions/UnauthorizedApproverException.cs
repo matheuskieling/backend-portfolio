@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class UnauthorizedApproverException : DomainException
+public sealed class UnauthorizedApproverException : ForbiddenException
 {
     private const string ErrorCode = "UNAUTHORIZED_APPROVER";
 

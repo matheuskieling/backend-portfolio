@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Identity.Domain.Exceptions;
 
-public sealed class InvalidPasswordException : DomainException
+public sealed class InvalidPasswordException : ValidationException
 {
     private const string ErrorCode = "INVALID_PASSWORD";
 

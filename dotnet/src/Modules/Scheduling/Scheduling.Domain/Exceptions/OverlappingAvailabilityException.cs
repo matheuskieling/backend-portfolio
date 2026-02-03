@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class OverlappingAvailabilityException : DomainException
+public sealed class OverlappingAvailabilityException : ConflictException
 {
     private const string ErrorCode = "OVERLAPPING_AVAILABILITY";
 

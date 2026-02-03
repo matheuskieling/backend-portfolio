@@ -1,9 +1,9 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 using Scheduling.Domain.Enums;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class TimeSlotNotAvailableException : DomainException
+public sealed class TimeSlotNotAvailableException : ValidationException
 {
     private const string ErrorCode = "TIME_SLOT_NOT_AVAILABLE";
 

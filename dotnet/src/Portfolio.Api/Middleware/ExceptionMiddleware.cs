@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Common.Contracts;
 using Common.Domain;
+using Common.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Portfolio.Api.Middleware;
@@ -63,24 +64,27 @@ public class ExceptionMiddleware
     {
         return exception switch
         {
-            // Domain Exceptions
-            DomainException domainEx when IsNotFoundException(domainEx) =>
-                (HttpStatusCode.NotFound, domainEx.Code, domainEx.Message),
+            // Domain exceptions - ordered by specificity
+            NotFoundException ex =>
+                (HttpStatusCode.NotFound, ex.Code, ex.Message),
 
-            DomainException domainEx when IsUnauthorizedException(domainEx) =>
-                (HttpStatusCode.Forbidden, domainEx.Code, domainEx.Message),
+            ForbiddenException ex =>
+                (HttpStatusCode.Forbidden, ex.Code, ex.Message),
 
-            DomainException domainEx when IsConflictException(domainEx) =>
-                (HttpStatusCode.Conflict, domainEx.Code, domainEx.Message),
+            ConflictException ex =>
+                (HttpStatusCode.Conflict, ex.Code, ex.Message),
 
-            DomainException domainEx =>
-                (HttpStatusCode.BadRequest, domainEx.Code, domainEx.Message),
+            ValidationException ex =>
+                (HttpStatusCode.BadRequest, ex.Code, ex.Message),
 
-            // Database exceptions (unique constraint violations, etc.)
-            DbUpdateException dbEx when IsUniqueConstraintViolation(dbEx) =>
-                (HttpStatusCode.Conflict, "DUPLICATE_ENTRY", GetUniqueConstraintMessage(dbEx)),
+            DomainException ex =>
+                (HttpStatusCode.BadRequest, ex.Code, ex.Message),
 
-            // Standard exceptions
+            // Database constraint violations (safety fallback)
+            DbUpdateException dbEx when ContainsUniqueConstraintViolation(dbEx) =>
+                (HttpStatusCode.Conflict, "DUPLICATE_ENTRY", "A record with the same unique value already exists."),
+
+            // Standard .NET exceptions
             ArgumentException argEx =>
                 (HttpStatusCode.BadRequest, "INVALID_ARGUMENT", argEx.Message),
 
@@ -97,25 +101,19 @@ public class ExceptionMiddleware
         };
     }
 
-    private static bool IsNotFoundException(DomainException ex) =>
-        ex.Code.EndsWith("_NOT_FOUND", StringComparison.OrdinalIgnoreCase);
+    /// <summary>
+    /// Safety fallback for database unique constraint violations.
+    /// Business rules should validate uniqueness before attempting to save.
+    /// </summary>
+    private static bool ContainsUniqueConstraintViolation(DbUpdateException ex)
+    {
+        var message = ex.InnerException?.Message;
+        if (string.IsNullOrEmpty(message)) return false;
 
-    private static bool IsUnauthorizedException(DomainException ex) =>
-        ex.Code.StartsWith("UNAUTHORIZED", StringComparison.OrdinalIgnoreCase) ||
-        ex.Code.Contains("ACCESS", StringComparison.OrdinalIgnoreCase);
-
-    private static bool IsConflictException(DomainException ex) =>
-        ex.Code.Contains("ALREADY_EXISTS", StringComparison.OrdinalIgnoreCase) ||
-        ex.Code.Contains("DUPLICATE", StringComparison.OrdinalIgnoreCase) ||
-        ex.Code.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase);
-
-    private static bool IsUniqueConstraintViolation(DbUpdateException ex) =>
-        ex.InnerException?.Message?.Contains("duplicate key", StringComparison.OrdinalIgnoreCase) == true ||
-        ex.InnerException?.Message?.Contains("unique constraint", StringComparison.OrdinalIgnoreCase) == true ||
-        ex.InnerException?.Message?.Contains("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase) == true;
-
-    private static string GetUniqueConstraintMessage(DbUpdateException ex) =>
-        "A record with the same unique value already exists.";
+        return message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase) ||
+               message.Contains("unique constraint", StringComparison.OrdinalIgnoreCase) ||
+               message.Contains("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 public static class ExceptionMiddlewareExtensions

@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class SchedulingProfileAlreadyExistsException : DomainException
+public sealed class SchedulingProfileAlreadyExistsException : ConflictException
 {
     private const string ErrorCode = "SCHEDULING_PROFILE_ALREADY_EXISTS";
 

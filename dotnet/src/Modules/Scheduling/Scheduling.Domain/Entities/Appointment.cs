@@ -38,6 +38,12 @@ public sealed class Appointment : AuditableEntity, IAggregateRoot
         Availability availability,
         DateTimeOffset currentTime)
     {
+        if (hostProfile.Type != Enums.ProfileType.Business)
+            throw InvalidBookingProfileTypeException.HostMustBeBusiness();
+
+        if (guestProfile.Type != Enums.ProfileType.Individual)
+            throw InvalidBookingProfileTypeException.GuestMustBeIndividual();
+
         if (hostProfile.ExternalUserId == guestProfile.ExternalUserId)
             throw new SelfBookingNotAllowedException();
 

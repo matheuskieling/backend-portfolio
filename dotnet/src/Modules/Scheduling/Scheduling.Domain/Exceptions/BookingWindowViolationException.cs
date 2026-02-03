@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class BookingWindowViolationException : DomainException
+public sealed class BookingWindowViolationException : ValidationException
 {
     private const string ErrorCode = "BOOKING_WINDOW_VIOLATION";
 

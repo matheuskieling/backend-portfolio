@@ -1,5 +1,4 @@
 using Common.Contracts;
-using Common.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Portfolio.Api.Contracts.Scheduling;
@@ -50,23 +49,16 @@ public class TimeSlotsController : ControllerBase
         [FromQuery] DateTimeOffset to,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var query = new GetAvailableSlotsQuery(profileId, from, to);
-            var result = await _getAvailableSlotsHandler.HandleAsync(query, cancellationToken);
+        var query = new GetAvailableSlotsQuery(profileId, from, to);
+        var result = await _getAvailableSlotsHandler.HandleAsync(query, cancellationToken);
 
-            var slots = result.Select(s => new AvailableSlotResponse(
-                s.Id,
-                s.AvailabilityId,
-                s.StartTime,
-                s.EndTime)).ToList();
+        var slots = result.Select(s => new AvailableSlotResponse(
+            s.Id,
+            s.AvailabilityId,
+            s.StartTime,
+            s.EndTime)).ToList();
 
-            return ApiResponse.Success<IReadOnlyList<AvailableSlotResponse>>(slots);
-        }
-        catch (DomainException ex)
-        {
-            return ApiResponse.NotFound<IReadOnlyList<AvailableSlotResponse>>(ex.Message);
-        }
+        return ApiResponse.Success<IReadOnlyList<AvailableSlotResponse>>(slots);
     }
 
     /// <summary>
@@ -93,19 +85,12 @@ public class TimeSlotsController : ControllerBase
         [FromBody] BlockSlotsRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new BlockSlotsCommand(profileId, request.SlotIds);
-            var result = await _blockSlotsHandler.HandleAsync(command, cancellationToken);
+        var command = new BlockSlotsCommand(profileId, request.SlotIds);
+        var result = await _blockSlotsHandler.HandleAsync(command, cancellationToken);
 
-            return ApiResponse.Success(new BlockUnblockResponse(
-                result.BlockedCount,
-                result.BlockedSlotIds));
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainException<BlockUnblockResponse>(ex);
-        }
+        return ApiResponse.Success(new BlockUnblockResponse(
+            result.BlockedCount,
+            result.BlockedSlotIds));
     }
 
     /// <summary>
@@ -130,28 +115,11 @@ public class TimeSlotsController : ControllerBase
         [FromBody] UnblockSlotsRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new UnblockSlotsCommand(profileId, request.SlotIds);
-            var result = await _unblockSlotsHandler.HandleAsync(command, cancellationToken);
+        var command = new UnblockSlotsCommand(profileId, request.SlotIds);
+        var result = await _unblockSlotsHandler.HandleAsync(command, cancellationToken);
 
-            return ApiResponse.Success(new BlockUnblockResponse(
-                result.UnblockedCount,
-                result.UnblockedSlotIds));
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainException<BlockUnblockResponse>(ex);
-        }
-    }
-
-    private static ApiResponse<T> HandleDomainException<T>(DomainException ex)
-    {
-        return ex.Code switch
-        {
-            "SCHEDULING_PROFILE_NOT_FOUND" => ApiResponse.NotFound<T>(ex.Message),
-            "UNAUTHORIZED_SCHEDULING_ACCESS" => ApiResponse.Forbidden<T>(ex.Message),
-            _ => ApiResponse.Failure<T>(ex.Code, ex.Message)
-        };
+        return ApiResponse.Success(new BlockUnblockResponse(
+            result.UnblockedCount,
+            result.UnblockedSlotIds));
     }
 }

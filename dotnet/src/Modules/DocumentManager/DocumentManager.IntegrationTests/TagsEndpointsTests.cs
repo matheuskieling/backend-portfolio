@@ -176,7 +176,7 @@ public class TagsEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task AddTagToDocument_DuplicateTag_ReturnsBadRequest()
+    public async Task AddTagToDocument_DuplicateTag_ReturnsConflict()
     {
         // Arrange
         await AuthenticateAsync();
@@ -188,7 +188,7 @@ public class TagsEndpointsTests : IntegrationTestBase
         var response = await PostAsync(Urls.DocumentTags(document.Id), new { TagId = tag.Id });
 
         // Assert
-        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "already");
+        await response.ValidateFailureAsync(HttpStatusCode.Conflict, expectedErrorMessage: "already");
     }
 
     [Fact]

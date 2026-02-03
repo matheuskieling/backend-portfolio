@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class TagNotAssignedException : DomainException
+public sealed class TagNotAssignedException : ValidationException
 {
     private const string ErrorCode = "TAG_NOT_ASSIGNED";
 

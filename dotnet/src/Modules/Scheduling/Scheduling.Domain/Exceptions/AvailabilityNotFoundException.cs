@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class AvailabilityNotFoundException : DomainException
+public sealed class AvailabilityNotFoundException : NotFoundException
 {
     private const string ErrorCode = "AVAILABILITY_NOT_FOUND";
 

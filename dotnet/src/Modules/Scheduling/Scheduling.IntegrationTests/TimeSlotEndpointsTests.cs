@@ -58,23 +58,27 @@ public class TimeSlotEndpointsTests : IntegrationTestBase
     [Fact]
     public async Task BlockSlots_BookedSlot_ReturnsBadRequest()
     {
-        // Arrange
-        await AuthenticateAsync();
-        var hostProfile = await CreateIndividualProfileAsync("Host");
+        // Arrange - Create host with business profile (only business profiles can receive appointments)
+        var hostUser = await AuthenticateAsync();
+        var hostProfile = await CreateBusinessProfileAsync("Host Business");
         var startTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(7).AddHours(9), TimeSpan.Zero);
         var availability = await CreateAvailabilityAsync(hostProfile.Id, startTime, startTime.AddHours(2), 60);
         var slotId = availability.TimeSlots.First().Id;
 
-        // Guest books the slot
+        // Guest books the slot (only individual profiles can book)
         await AuthenticateAsync();
         var guestProfile = await CreateIndividualProfileAsync("Guest");
         await BookAppointmentAsync(hostProfile.Id, guestProfile.Id, slotId);
 
-        // Switch back to original user (host owner) - need to re-authenticate as host
-        // This requires tracking the user context which is complex
-        // For this test, we'll create a host with a known email
+        // Switch back to host user
+        hostUser.Authenticate();
 
-        // Simplified: verify with a fresh test setup
+        // Act - Try to block a booked slot
+        var request = new BlockSlotsRequest(new[] { slotId });
+        var response = await PostAsync(Urls.BlockSlots(hostProfile.Id), request);
+
+        // Assert
+        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "booked");
     }
 
     [Fact]

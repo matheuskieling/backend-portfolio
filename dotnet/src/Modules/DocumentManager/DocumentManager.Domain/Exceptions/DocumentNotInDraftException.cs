@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class DocumentNotInDraftException : DomainException
+public sealed class DocumentNotInDraftException : ValidationException
 {
     private const string ErrorCode = "DOCUMENT_NOT_IN_DRAFT";
 

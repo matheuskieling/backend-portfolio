@@ -41,7 +41,7 @@ public class ProfileEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task CreateIndividualProfile_WhenOneAlreadyExists_ReturnsBadRequest()
+    public async Task CreateIndividualProfile_WhenOneAlreadyExists_ReturnsConflict()
     {
         // Arrange
         await AuthenticateAsync();
@@ -52,11 +52,11 @@ public class ProfileEndpointsTests : IntegrationTestBase
         var response = await PostAsync(Urls.Profiles, request);
 
         // Assert
-        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "already has an individual profile");
+        await response.ValidateFailureAsync(HttpStatusCode.Conflict, expectedErrorMessage: "already has an individual profile");
     }
 
     [Fact]
-    public async Task CreateBusinessProfile_WithDuplicateName_ReturnsBadRequest()
+    public async Task CreateBusinessProfile_WithDuplicateName_ReturnsConflict()
     {
         // Arrange
         await AuthenticateAsync();
@@ -67,7 +67,7 @@ public class ProfileEndpointsTests : IntegrationTestBase
         var response = await PostAsync(Urls.Profiles, request);
 
         // Assert
-        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "already exists");
+        await response.ValidateFailureAsync(HttpStatusCode.Conflict, expectedErrorMessage: "already exists");
     }
 
     [Fact]

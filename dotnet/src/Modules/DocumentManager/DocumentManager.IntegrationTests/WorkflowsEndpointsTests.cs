@@ -85,7 +85,7 @@ public class WorkflowsEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task CreateWorkflow_WithDuplicateStepOrders_ReturnsBadRequest()
+    public async Task CreateWorkflow_WithDuplicateStepOrders_ReturnsConflict()
     {
         // Arrange
         await AuthenticateAsync();
@@ -102,7 +102,7 @@ public class WorkflowsEndpointsTests : IntegrationTestBase
         });
 
         // Assert
-        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "duplicate");
+        await response.ValidateFailureAsync(HttpStatusCode.Conflict, expectedErrorMessage: "duplicate");
     }
 
     [Fact]

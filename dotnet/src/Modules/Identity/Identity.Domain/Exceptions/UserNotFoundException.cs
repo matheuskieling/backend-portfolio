@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Identity.Domain.Exceptions;
 
-public sealed class UserNotFoundException : DomainException
+public sealed class UserNotFoundException : NotFoundException
 {
     private const string ErrorCode = "USER_NOT_FOUND";
 

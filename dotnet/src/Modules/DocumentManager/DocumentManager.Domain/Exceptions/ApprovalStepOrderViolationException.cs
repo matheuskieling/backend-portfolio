@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class ApprovalStepOrderViolationException : DomainException
+public sealed class ApprovalStepOrderViolationException : ValidationException
 {
     private const string ErrorCode = "APPROVAL_STEP_ORDER_VIOLATION";
 
