@@ -1,5 +1,4 @@
 using Common.Contracts;
-using Common.Domain;
 using Identity.Application.UseCases.Login;
 using Identity.Application.UseCases.RegisterUser;
 using Microsoft.AspNetCore.Mvc;
@@ -49,25 +48,18 @@ public class AuthController : ControllerBase
         [FromBody] RegisterUserRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new RegisterUserCommand(
-                request.Email,
-                request.Password,
-                request.FirstName,
-                request.LastName);
+        var command = new RegisterUserCommand(
+            request.Email,
+            request.Password,
+            request.FirstName,
+            request.LastName);
 
-            var result = await _registerUserHandler.HandleAsync(command, cancellationToken);
+        var result = await _registerUserHandler.HandleAsync(command, cancellationToken);
 
-            return ApiResponse.Created(new RegisterUserResponse(
-                result.UserId,
-                result.Email,
-                result.FullName));
-        }
-        catch (DomainException ex)
-        {
-            return ApiResponse.Failure<RegisterUserResponse>("DOMAIN_ERROR", ex.Message);
-        }
+        return ApiResponse.Created(new RegisterUserResponse(
+            result.UserId,
+            result.Email,
+            result.FullName));
     }
 
     /// <summary>
@@ -88,21 +80,14 @@ public class AuthController : ControllerBase
         [FromBody] LoginRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new LoginCommand(request.Email, request.Password);
-            var result = await _loginHandler.HandleAsync(command, cancellationToken);
+        var command = new LoginCommand(request.Email, request.Password);
+        var result = await _loginHandler.HandleAsync(command, cancellationToken);
 
-            return ApiResponse.Success(new LoginResponse(
-                result.Token,
-                result.UserId,
-                result.Email,
-                result.FullName,
-                result.Roles));
-        }
-        catch (DomainException ex)
-        {
-            return ApiResponse.Failure<LoginResponse>("DOMAIN_ERROR", ex.Message);
-        }
+        return ApiResponse.Success(new LoginResponse(
+            result.Token,
+            result.UserId,
+            result.Email,
+            result.FullName,
+            result.Roles));
     }
 }

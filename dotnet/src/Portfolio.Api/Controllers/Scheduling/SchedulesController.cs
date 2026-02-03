@@ -1,5 +1,4 @@
 using Common.Contracts;
-using Common.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Portfolio.Api.Contracts.Scheduling;
@@ -69,58 +68,37 @@ public class SchedulesController : ControllerBase
         [FromBody] CreateScheduleRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            if (!TimeOnly.TryParse(request.StartTimeOfDay, out var startTime))
-                return ApiResponse.Failure<ScheduleResponse>("INVALID_TIME", "Invalid start time format. Use HH:mm.");
+        var (startTime, endTime, effectiveFrom, effectiveUntil) = ParseScheduleRequest(
+            request.StartTimeOfDay, request.EndTimeOfDay, request.EffectiveFrom, request.EffectiveUntil);
 
-            if (!TimeOnly.TryParse(request.EndTimeOfDay, out var endTime))
-                return ApiResponse.Failure<ScheduleResponse>("INVALID_TIME", "Invalid end time format. Use HH:mm.");
+        var daysOfWeek = request.DaysOfWeek.Select(d => (DayOfWeek)d).ToArray();
 
-            if (!DateOnly.TryParse(request.EffectiveFrom, out var effectiveFrom))
-                return ApiResponse.Failure<ScheduleResponse>("INVALID_DATE", "Invalid effective from date. Use yyyy-MM-dd.");
+        var command = new CreateScheduleCommand(
+            profileId,
+            request.Name,
+            daysOfWeek,
+            startTime,
+            endTime,
+            request.SlotDurationMinutes,
+            effectiveFrom,
+            effectiveUntil,
+            request.MinAdvanceBookingMinutes,
+            request.MaxAdvanceBookingDays,
+            request.CancellationDeadlineMinutes);
 
-            DateOnly? effectiveUntil = null;
-            if (!string.IsNullOrEmpty(request.EffectiveUntil))
-            {
-                if (!DateOnly.TryParse(request.EffectiveUntil, out var until))
-                    return ApiResponse.Failure<ScheduleResponse>("INVALID_DATE", "Invalid effective until date. Use yyyy-MM-dd.");
-                effectiveUntil = until;
-            }
+        var result = await _createScheduleHandler.HandleAsync(command, cancellationToken);
 
-            var daysOfWeek = request.DaysOfWeek.Select(d => (DayOfWeek)d).ToArray();
-
-            var command = new CreateScheduleCommand(
-                profileId,
-                request.Name,
-                daysOfWeek,
-                startTime,
-                endTime,
-                request.SlotDurationMinutes,
-                effectiveFrom,
-                effectiveUntil,
-                request.MinAdvanceBookingMinutes,
-                request.MaxAdvanceBookingDays,
-                request.CancellationDeadlineMinutes);
-
-            var result = await _createScheduleHandler.HandleAsync(command, cancellationToken);
-
-            return ApiResponse.Created(new ScheduleResponse(
-                result.Id,
-                result.Name,
-                result.DaysOfWeek.Select(d => (int)d).ToArray(),
-                result.StartTimeOfDay.ToString("HH:mm"),
-                result.EndTimeOfDay.ToString("HH:mm"),
-                result.SlotDurationMinutes,
-                result.EffectiveFrom.ToString("yyyy-MM-dd"),
-                result.EffectiveUntil?.ToString("yyyy-MM-dd"),
-                result.IsActive,
-                DateTime.UtcNow));
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainException<ScheduleResponse>(ex);
-        }
+        return ApiResponse.Created(new ScheduleResponse(
+            result.Id,
+            result.Name,
+            result.DaysOfWeek.Select(d => (int)d).ToArray(),
+            result.StartTimeOfDay.ToString("HH:mm"),
+            result.EndTimeOfDay.ToString("HH:mm"),
+            result.SlotDurationMinutes,
+            result.EffectiveFrom.ToString("yyyy-MM-dd"),
+            result.EffectiveUntil?.ToString("yyyy-MM-dd"),
+            result.IsActive,
+            DateTime.UtcNow));
     }
 
     /// <summary>
@@ -142,29 +120,22 @@ public class SchedulesController : ControllerBase
         Guid profileId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var query = new GetSchedulesQuery(profileId);
-            var result = await _getSchedulesHandler.HandleAsync(query, cancellationToken);
+        var query = new GetSchedulesQuery(profileId);
+        var result = await _getSchedulesHandler.HandleAsync(query, cancellationToken);
 
-            var schedules = result.Select(s => new ScheduleResponse(
-                s.Id,
-                s.Name,
-                s.DaysOfWeek.Select(d => (int)d).ToArray(),
-                s.StartTimeOfDay.ToString("HH:mm"),
-                s.EndTimeOfDay.ToString("HH:mm"),
-                s.SlotDurationMinutes,
-                s.EffectiveFrom.ToString("yyyy-MM-dd"),
-                s.EffectiveUntil?.ToString("yyyy-MM-dd"),
-                s.IsActive,
-                s.CreatedAt)).ToList();
+        var schedules = result.Select(s => new ScheduleResponse(
+            s.Id,
+            s.Name,
+            s.DaysOfWeek.Select(d => (int)d).ToArray(),
+            s.StartTimeOfDay.ToString("HH:mm"),
+            s.EndTimeOfDay.ToString("HH:mm"),
+            s.SlotDurationMinutes,
+            s.EffectiveFrom.ToString("yyyy-MM-dd"),
+            s.EffectiveUntil?.ToString("yyyy-MM-dd"),
+            s.IsActive,
+            s.CreatedAt)).ToList();
 
-            return ApiResponse.Success<IReadOnlyList<ScheduleResponse>>(schedules);
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainException<IReadOnlyList<ScheduleResponse>>(ex);
-        }
+        return ApiResponse.Success<IReadOnlyList<ScheduleResponse>>(schedules);
     }
 
     /// <summary>
@@ -188,31 +159,24 @@ public class SchedulesController : ControllerBase
         Guid scheduleId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var query = new GetScheduleByIdQuery(profileId, scheduleId);
-            var result = await _getScheduleByIdHandler.HandleAsync(query, cancellationToken);
+        var query = new GetScheduleByIdQuery(profileId, scheduleId);
+        var result = await _getScheduleByIdHandler.HandleAsync(query, cancellationToken);
 
-            return ApiResponse.Success(new ScheduleDetailResponse(
-                result.Id,
-                result.Name,
-                result.DaysOfWeek.Select(d => (int)d).ToArray(),
-                result.StartTimeOfDay.ToString("HH:mm"),
-                result.EndTimeOfDay.ToString("HH:mm"),
-                result.SlotDurationMinutes,
-                result.MinAdvanceBookingMinutes,
-                result.MaxAdvanceBookingDays,
-                result.CancellationDeadlineMinutes,
-                result.EffectiveFrom.ToString("yyyy-MM-dd"),
-                result.EffectiveUntil?.ToString("yyyy-MM-dd"),
-                result.IsActive,
-                result.CreatedAt,
-                result.UpdatedAt));
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainException<ScheduleDetailResponse>(ex);
-        }
+        return ApiResponse.Success(new ScheduleDetailResponse(
+            result.Id,
+            result.Name,
+            result.DaysOfWeek.Select(d => (int)d).ToArray(),
+            result.StartTimeOfDay.ToString("HH:mm"),
+            result.EndTimeOfDay.ToString("HH:mm"),
+            result.SlotDurationMinutes,
+            result.MinAdvanceBookingMinutes,
+            result.MaxAdvanceBookingDays,
+            result.CancellationDeadlineMinutes,
+            result.EffectiveFrom.ToString("yyyy-MM-dd"),
+            result.EffectiveUntil?.ToString("yyyy-MM-dd"),
+            result.IsActive,
+            result.CreatedAt,
+            result.UpdatedAt));
     }
 
     /// <summary>
@@ -240,59 +204,38 @@ public class SchedulesController : ControllerBase
         [FromBody] UpdateScheduleRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            if (!TimeOnly.TryParse(request.StartTimeOfDay, out var startTime))
-                return ApiResponse.Failure<ScheduleResponse>("INVALID_TIME", "Invalid start time format. Use HH:mm.");
+        var (startTime, endTime, effectiveFrom, effectiveUntil) = ParseScheduleRequest(
+            request.StartTimeOfDay, request.EndTimeOfDay, request.EffectiveFrom, request.EffectiveUntil);
 
-            if (!TimeOnly.TryParse(request.EndTimeOfDay, out var endTime))
-                return ApiResponse.Failure<ScheduleResponse>("INVALID_TIME", "Invalid end time format. Use HH:mm.");
+        var daysOfWeek = request.DaysOfWeek.Select(d => (DayOfWeek)d).ToArray();
 
-            if (!DateOnly.TryParse(request.EffectiveFrom, out var effectiveFrom))
-                return ApiResponse.Failure<ScheduleResponse>("INVALID_DATE", "Invalid effective from date. Use yyyy-MM-dd.");
+        var command = new UpdateScheduleCommand(
+            profileId,
+            scheduleId,
+            request.Name,
+            daysOfWeek,
+            startTime,
+            endTime,
+            request.SlotDurationMinutes,
+            effectiveFrom,
+            effectiveUntil,
+            request.MinAdvanceBookingMinutes,
+            request.MaxAdvanceBookingDays,
+            request.CancellationDeadlineMinutes);
 
-            DateOnly? effectiveUntil = null;
-            if (!string.IsNullOrEmpty(request.EffectiveUntil))
-            {
-                if (!DateOnly.TryParse(request.EffectiveUntil, out var until))
-                    return ApiResponse.Failure<ScheduleResponse>("INVALID_DATE", "Invalid effective until date. Use yyyy-MM-dd.");
-                effectiveUntil = until;
-            }
+        var result = await _updateScheduleHandler.HandleAsync(command, cancellationToken);
 
-            var daysOfWeek = request.DaysOfWeek.Select(d => (DayOfWeek)d).ToArray();
-
-            var command = new UpdateScheduleCommand(
-                profileId,
-                scheduleId,
-                request.Name,
-                daysOfWeek,
-                startTime,
-                endTime,
-                request.SlotDurationMinutes,
-                effectiveFrom,
-                effectiveUntil,
-                request.MinAdvanceBookingMinutes,
-                request.MaxAdvanceBookingDays,
-                request.CancellationDeadlineMinutes);
-
-            var result = await _updateScheduleHandler.HandleAsync(command, cancellationToken);
-
-            return ApiResponse.Success(new ScheduleResponse(
-                result.Id,
-                result.Name,
-                result.DaysOfWeek.Select(d => (int)d).ToArray(),
-                result.StartTimeOfDay.ToString("HH:mm"),
-                result.EndTimeOfDay.ToString("HH:mm"),
-                result.SlotDurationMinutes,
-                result.EffectiveFrom.ToString("yyyy-MM-dd"),
-                result.EffectiveUntil?.ToString("yyyy-MM-dd"),
-                result.IsActive,
-                DateTime.UtcNow));
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainException<ScheduleResponse>(ex);
-        }
+        return ApiResponse.Success(new ScheduleResponse(
+            result.Id,
+            result.Name,
+            result.DaysOfWeek.Select(d => (int)d).ToArray(),
+            result.StartTimeOfDay.ToString("HH:mm"),
+            result.EndTimeOfDay.ToString("HH:mm"),
+            result.SlotDurationMinutes,
+            result.EffectiveFrom.ToString("yyyy-MM-dd"),
+            result.EffectiveUntil?.ToString("yyyy-MM-dd"),
+            result.IsActive,
+            DateTime.UtcNow));
     }
 
     /// <summary>
@@ -316,16 +259,9 @@ public class SchedulesController : ControllerBase
         Guid scheduleId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new DeleteScheduleCommand(profileId, scheduleId);
-            await _deleteScheduleHandler.HandleAsync(command, cancellationToken);
-            return NoContent();
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainExceptionResult(ex);
-        }
+        var command = new DeleteScheduleCommand(profileId, scheduleId);
+        await _deleteScheduleHandler.HandleAsync(command, cancellationToken);
+        return NoContent();
     }
 
     /// <summary>
@@ -349,16 +285,9 @@ public class SchedulesController : ControllerBase
         Guid scheduleId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new PauseScheduleCommand(profileId, scheduleId);
-            await _pauseScheduleHandler.HandleAsync(command, cancellationToken);
-            return NoContent();
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainExceptionResult(ex);
-        }
+        var command = new PauseScheduleCommand(profileId, scheduleId);
+        await _pauseScheduleHandler.HandleAsync(command, cancellationToken);
+        return NoContent();
     }
 
     /// <summary>
@@ -382,16 +311,9 @@ public class SchedulesController : ControllerBase
         Guid scheduleId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new ResumeScheduleCommand(profileId, scheduleId);
-            await _resumeScheduleHandler.HandleAsync(command, cancellationToken);
-            return NoContent();
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainExceptionResult(ex);
-        }
+        var command = new ResumeScheduleCommand(profileId, scheduleId);
+        await _resumeScheduleHandler.HandleAsync(command, cancellationToken);
+        return NoContent();
     }
 
     /// <summary>
@@ -419,49 +341,45 @@ public class SchedulesController : ControllerBase
         [FromBody] GenerateAvailabilitiesRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            if (!DateOnly.TryParse(request.FromDate, out var fromDate))
-                return ApiResponse.Failure<GenerateAvailabilitiesResponse>("INVALID_DATE", "Invalid from date. Use yyyy-MM-dd.");
+        if (!DateOnly.TryParse(request.FromDate, out var fromDate))
+            throw new ArgumentException("Invalid from date. Use yyyy-MM-dd.");
 
-            if (!DateOnly.TryParse(request.ToDate, out var toDate))
-                return ApiResponse.Failure<GenerateAvailabilitiesResponse>("INVALID_DATE", "Invalid to date. Use yyyy-MM-dd.");
+        if (!DateOnly.TryParse(request.ToDate, out var toDate))
+            throw new ArgumentException("Invalid to date. Use yyyy-MM-dd.");
 
-            var command = new GenerateAvailabilitiesCommand(profileId, scheduleId, fromDate, toDate);
-            var result = await _generateAvailabilitiesHandler.HandleAsync(command, cancellationToken);
+        var command = new GenerateAvailabilitiesCommand(profileId, scheduleId, fromDate, toDate);
+        var result = await _generateAvailabilitiesHandler.HandleAsync(command, cancellationToken);
 
-            return ApiResponse.Success(new GenerateAvailabilitiesResponse(
-                result.GeneratedCount,
-                result.SkippedCount,
-                result.Availabilities.Select(a => new GeneratedAvailabilityInfo(
-                    a.Id,
-                    a.StartTime,
-                    a.EndTime,
-                    a.SlotCount)).ToList()));
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainException<GenerateAvailabilitiesResponse>(ex);
-        }
+        return ApiResponse.Success(new GenerateAvailabilitiesResponse(
+            result.GeneratedCount,
+            result.SkippedCount,
+            result.Availabilities.Select(a => new GeneratedAvailabilityInfo(
+                a.Id,
+                a.StartTime,
+                a.EndTime,
+                a.SlotCount)).ToList()));
     }
 
-    private static ApiResponse<T> HandleDomainException<T>(DomainException ex)
+    private static (TimeOnly StartTime, TimeOnly EndTime, DateOnly EffectiveFrom, DateOnly? EffectiveUntil) ParseScheduleRequest(
+        string startTimeOfDay, string endTimeOfDay, string effectiveFrom, string? effectiveUntil)
     {
-        return ex.Code switch
-        {
-            "SCHEDULING_PROFILE_NOT_FOUND" or "SCHEDULE_NOT_FOUND" => ApiResponse.NotFound<T>(ex.Message),
-            "UNAUTHORIZED_SCHEDULING_ACCESS" => ApiResponse.Forbidden<T>(ex.Message),
-            _ => ApiResponse.Failure<T>(ex.Code, ex.Message)
-        };
-    }
+        if (!TimeOnly.TryParse(startTimeOfDay, out var startTime))
+            throw new ArgumentException("Invalid start time format. Use HH:mm.");
 
-    private static IActionResult HandleDomainExceptionResult(DomainException ex)
-    {
-        return ex.Code switch
+        if (!TimeOnly.TryParse(endTimeOfDay, out var endTime))
+            throw new ArgumentException("Invalid end time format. Use HH:mm.");
+
+        if (!DateOnly.TryParse(effectiveFrom, out var effectiveFromDate))
+            throw new ArgumentException("Invalid effective from date. Use yyyy-MM-dd.");
+
+        DateOnly? effectiveUntilDate = null;
+        if (!string.IsNullOrEmpty(effectiveUntil))
         {
-            "SCHEDULING_PROFILE_NOT_FOUND" or "SCHEDULE_NOT_FOUND" => ApiResponse.NotFound<object>(ex.Message),
-            "UNAUTHORIZED_SCHEDULING_ACCESS" => ApiResponse.Forbidden<object>(ex.Message),
-            _ => ApiResponse.Failure<object>(ex.Code, ex.Message)
-        };
+            if (!DateOnly.TryParse(effectiveUntil, out var until))
+                throw new ArgumentException("Invalid effective until date. Use yyyy-MM-dd.");
+            effectiveUntilDate = until;
+        }
+
+        return (startTime, endTime, effectiveFromDate, effectiveUntilDate);
     }
 }

@@ -1,5 +1,4 @@
 using Common.Contracts;
-using Common.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Portfolio.Api.Contracts.Scheduling;
@@ -59,39 +58,32 @@ public class AvailabilitiesController : ControllerBase
         [FromBody] CreateAvailabilityRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreateAvailabilityCommand(
-                profileId,
-                request.StartTime,
-                request.EndTime,
-                request.SlotDurationMinutes,
-                request.MinAdvanceBookingMinutes,
-                request.MaxAdvanceBookingDays,
-                request.CancellationDeadlineMinutes);
+        var command = new CreateAvailabilityCommand(
+            profileId,
+            request.StartTime,
+            request.EndTime,
+            request.SlotDurationMinutes,
+            request.MinAdvanceBookingMinutes,
+            request.MaxAdvanceBookingDays,
+            request.CancellationDeadlineMinutes);
 
-            var result = await _createAvailabilityHandler.HandleAsync(command, cancellationToken);
+        var result = await _createAvailabilityHandler.HandleAsync(command, cancellationToken);
 
-            return ApiResponse.Created(new AvailabilityDetailResponse(
-                result.Id,
-                null,
-                result.StartTime,
-                result.EndTime,
-                result.SlotDurationMinutes,
-                request.MinAdvanceBookingMinutes,
-                request.MaxAdvanceBookingDays,
-                request.CancellationDeadlineMinutes,
-                result.TimeSlots.Select(s => new TimeSlotResponse(
-                    s.Id,
-                    s.StartTime,
-                    s.EndTime,
-                    s.Status)).ToList(),
-                DateTime.UtcNow));
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainException<AvailabilityDetailResponse>(ex);
-        }
+        return ApiResponse.Created(new AvailabilityDetailResponse(
+            result.Id,
+            null,
+            result.StartTime,
+            result.EndTime,
+            result.SlotDurationMinutes,
+            request.MinAdvanceBookingMinutes,
+            request.MaxAdvanceBookingDays,
+            request.CancellationDeadlineMinutes,
+            result.TimeSlots.Select(s => new TimeSlotResponse(
+                s.Id,
+                s.StartTime,
+                s.EndTime,
+                s.Status)).ToList(),
+            DateTime.UtcNow));
     }
 
     /// <summary>
@@ -117,29 +109,22 @@ public class AvailabilitiesController : ControllerBase
         [FromQuery] DateTimeOffset? to = null,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var query = new GetAvailabilitiesQuery(profileId, from, to);
-            var result = await _getAvailabilitiesHandler.HandleAsync(query, cancellationToken);
+        var query = new GetAvailabilitiesQuery(profileId, from, to);
+        var result = await _getAvailabilitiesHandler.HandleAsync(query, cancellationToken);
 
-            var availabilities = result.Select(a => new AvailabilityResponse(
-                a.Id,
-                a.ScheduleId,
-                a.StartTime,
-                a.EndTime,
-                a.SlotDurationMinutes,
-                a.TotalSlots,
-                a.AvailableSlots,
-                a.BookedSlots,
-                a.BlockedSlots,
-                a.CreatedAt)).ToList();
+        var availabilities = result.Select(a => new AvailabilityResponse(
+            a.Id,
+            a.ScheduleId,
+            a.StartTime,
+            a.EndTime,
+            a.SlotDurationMinutes,
+            a.TotalSlots,
+            a.AvailableSlots,
+            a.BookedSlots,
+            a.BlockedSlots,
+            a.CreatedAt)).ToList();
 
-            return ApiResponse.Success<IReadOnlyList<AvailabilityResponse>>(availabilities);
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainException<IReadOnlyList<AvailabilityResponse>>(ex);
-        }
+        return ApiResponse.Success<IReadOnlyList<AvailabilityResponse>>(availabilities);
     }
 
     /// <summary>
@@ -163,31 +148,24 @@ public class AvailabilitiesController : ControllerBase
         Guid availabilityId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var query = new GetAvailabilityByIdQuery(profileId, availabilityId);
-            var result = await _getAvailabilityByIdHandler.HandleAsync(query, cancellationToken);
+        var query = new GetAvailabilityByIdQuery(profileId, availabilityId);
+        var result = await _getAvailabilityByIdHandler.HandleAsync(query, cancellationToken);
 
-            return ApiResponse.Success(new AvailabilityDetailResponse(
-                result.Id,
-                result.ScheduleId,
-                result.StartTime,
-                result.EndTime,
-                result.SlotDurationMinutes,
-                result.MinAdvanceBookingMinutes,
-                result.MaxAdvanceBookingDays,
-                result.CancellationDeadlineMinutes,
-                result.TimeSlots.Select(s => new TimeSlotResponse(
-                    s.Id,
-                    s.StartTime,
-                    s.EndTime,
-                    s.Status)).ToList(),
-                result.CreatedAt));
-        }
-        catch (DomainException ex)
-        {
-            return HandleDomainException<AvailabilityDetailResponse>(ex);
-        }
+        return ApiResponse.Success(new AvailabilityDetailResponse(
+            result.Id,
+            result.ScheduleId,
+            result.StartTime,
+            result.EndTime,
+            result.SlotDurationMinutes,
+            result.MinAdvanceBookingMinutes,
+            result.MaxAdvanceBookingDays,
+            result.CancellationDeadlineMinutes,
+            result.TimeSlots.Select(s => new TimeSlotResponse(
+                s.Id,
+                s.StartTime,
+                s.EndTime,
+                s.Status)).ToList(),
+            result.CreatedAt));
     }
 
     /// <summary>
@@ -213,31 +191,8 @@ public class AvailabilitiesController : ControllerBase
         Guid availabilityId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new DeleteAvailabilityCommand(profileId, availabilityId);
-            await _deleteAvailabilityHandler.HandleAsync(command, cancellationToken);
-            return NoContent();
-        }
-        catch (DomainException ex)
-        {
-            return ex.Code switch
-            {
-                "SCHEDULING_PROFILE_NOT_FOUND" or "AVAILABILITY_NOT_FOUND" => ApiResponse.NotFound<object>(ex.Message),
-                "UNAUTHORIZED_SCHEDULING_ACCESS" => ApiResponse.Forbidden<object>(ex.Message),
-                _ => ApiResponse.Failure<object>(ex.Code, ex.Message)
-            };
-        }
-    }
-
-    private static ApiResponse<T> HandleDomainException<T>(DomainException ex)
-    {
-        return ex.Code switch
-        {
-            "SCHEDULING_PROFILE_NOT_FOUND" or "AVAILABILITY_NOT_FOUND" => ApiResponse.NotFound<T>(ex.Message),
-            "UNAUTHORIZED_SCHEDULING_ACCESS" => ApiResponse.Forbidden<T>(ex.Message),
-            "OVERLAPPING_AVAILABILITY" => ApiResponse.Failure<T>(ex.Code, ex.Message),
-            _ => ApiResponse.Failure<T>(ex.Code, ex.Message)
-        };
+        var command = new DeleteAvailabilityCommand(profileId, availabilityId);
+        await _deleteAvailabilityHandler.HandleAsync(command, cancellationToken);
+        return NoContent();
     }
 }
