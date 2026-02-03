@@ -33,6 +33,13 @@ public class TimeSlotsController : ControllerBase
     /// <summary>
     /// Gets available time slots for a profile within a date range (public).
     /// </summary>
+    /// <param name="profileId">The profile ID to get available slots for.</param>
+    /// <param name="from">Start of date range.</param>
+    /// <param name="to">End of date range.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of available time slots.</returns>
+    /// <response code="200">Available slots retrieved successfully.</response>
+    /// <response code="404">Profile not found.</response>
     [HttpGet]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<AvailableSlotResponse>>), StatusCodes.Status200OK)]
@@ -65,10 +72,20 @@ public class TimeSlotsController : ControllerBase
     /// <summary>
     /// Blocks multiple time slots (owner only).
     /// </summary>
+    /// <param name="profileId">The profile ID.</param>
+    /// <param name="request">The slot IDs to block.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The block operation result.</returns>
+    /// <response code="200">Slots successfully blocked.</response>
+    /// <response code="400">Invalid request or slots cannot be blocked (e.g., already booked).</response>
+    /// <response code="401">User is not authenticated.</response>
+    /// <response code="403">Not authorized to block slots for this profile.</response>
+    /// <response code="404">Profile not found.</response>
     [HttpPost("block")]
     [Authorize]
     [ProducesResponseType(typeof(ApiResponse<BlockUnblockResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<BlockUnblockResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<BlockUnblockResponse>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<BlockUnblockResponse>), StatusCodes.Status404NotFound)]
     public async Task<ApiResponse<BlockUnblockResponse>> BlockSlots(
@@ -94,9 +111,18 @@ public class TimeSlotsController : ControllerBase
     /// <summary>
     /// Unblocks multiple time slots (owner only).
     /// </summary>
+    /// <param name="profileId">The profile ID.</param>
+    /// <param name="request">The slot IDs to unblock.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The unblock operation result.</returns>
+    /// <response code="200">Slots successfully unblocked.</response>
+    /// <response code="401">User is not authenticated.</response>
+    /// <response code="403">Not authorized to unblock slots for this profile.</response>
+    /// <response code="404">Profile not found.</response>
     [HttpPost("unblock")]
     [Authorize]
     [ProducesResponseType(typeof(ApiResponse<BlockUnblockResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<BlockUnblockResponse>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<BlockUnblockResponse>), StatusCodes.Status404NotFound)]
     public async Task<ApiResponse<BlockUnblockResponse>> UnblockSlots(
