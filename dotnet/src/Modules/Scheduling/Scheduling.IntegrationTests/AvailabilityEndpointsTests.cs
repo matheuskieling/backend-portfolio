@@ -29,7 +29,7 @@ public class AvailabilityEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task CreateAvailability_WithOverlappingTime_ReturnsBadRequest()
+    public async Task CreateAvailability_WithOverlappingTime_ReturnsConflict()
     {
         // Arrange
         await AuthenticateAsync();
@@ -45,7 +45,7 @@ public class AvailabilityEndpointsTests : IntegrationTestBase
         var response = await PostAsync(Urls.Availabilities(profile.Id), request);
 
         // Assert
-        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "overlaps");
+        await response.ValidateFailureAsync(HttpStatusCode.Conflict, expectedErrorMessage: "overlaps");
     }
 
     [Fact]

@@ -33,7 +33,7 @@ public class AuthEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task Register_WithDuplicateEmail_ReturnsBadRequest()
+    public async Task Register_WithDuplicateEmail_ReturnsConflict()
     {
         // Arrange
         var request = new
@@ -50,7 +50,7 @@ public class AuthEndpointsTests : IntegrationTestBase
         var response = await PostAsync("/api/identity/register", request);
 
         // Assert
-        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "already exists");
+        await response.ValidateFailureAsync(HttpStatusCode.Conflict, expectedErrorMessage: "already exists");
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public class AuthEndpointsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task Login_WithNonExistentUser_ReturnsBadRequest()
+    public async Task Login_WithNonExistentUser_ReturnsNotFound()
     {
         // Arrange
         var loginRequest = new
@@ -158,7 +158,7 @@ public class AuthEndpointsTests : IntegrationTestBase
         var response = await PostAsync("/api/identity/login", loginRequest);
 
         // Assert
-        await response.ValidateFailureAsync(HttpStatusCode.BadRequest, expectedErrorMessage: "not found");
+        await response.ValidateFailureAsync(HttpStatusCode.NotFound, expectedErrorMessage: "not found");
     }
 
     [Fact]
