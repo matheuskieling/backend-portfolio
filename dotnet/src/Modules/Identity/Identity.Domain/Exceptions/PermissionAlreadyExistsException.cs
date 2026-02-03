@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Identity.Domain.Exceptions;
 
-public sealed class PermissionAlreadyExistsException : DomainException
+public sealed class PermissionAlreadyExistsException : ConflictException
 {
     private const string ErrorCode = "PERMISSION_ALREADY_EXISTS";
 

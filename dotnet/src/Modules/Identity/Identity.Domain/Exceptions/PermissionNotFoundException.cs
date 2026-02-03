@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Identity.Domain.Exceptions;
 
-public sealed class PermissionNotFoundException : DomainException
+public sealed class PermissionNotFoundException : NotFoundException
 {
     private const string ErrorCode = "PERMISSION_NOT_FOUND";
 

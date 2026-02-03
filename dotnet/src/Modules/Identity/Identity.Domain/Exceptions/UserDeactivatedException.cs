@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Identity.Domain.Exceptions;
 
-public sealed class UserDeactivatedException : DomainException
+public sealed class UserDeactivatedException : ValidationException
 {
     private const string ErrorCode = "USER_DEACTIVATED";
 

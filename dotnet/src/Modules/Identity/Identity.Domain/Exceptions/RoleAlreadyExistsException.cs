@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Identity.Domain.Exceptions;
 
-public sealed class RoleAlreadyExistsException : DomainException
+public sealed class RoleAlreadyExistsException : ConflictException
 {
     private const string ErrorCode = "ROLE_ALREADY_EXISTS";
 

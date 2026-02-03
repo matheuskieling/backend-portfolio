@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Identity.Domain.Exceptions;
 
-public sealed class RoleNotFoundException : DomainException
+public sealed class RoleNotFoundException : NotFoundException
 {
     private const string ErrorCode = "ROLE_NOT_FOUND";
 
