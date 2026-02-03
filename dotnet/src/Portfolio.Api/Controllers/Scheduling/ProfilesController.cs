@@ -43,10 +43,12 @@ public class ProfilesController : ControllerBase
     /// <returns>The newly created profile.</returns>
     /// <response code="201">Profile successfully created.</response>
     /// <response code="400">Invalid request or domain validation error.</response>
+    /// <response code="401">User is not authenticated.</response>
     /// <response code="409">Profile already exists (duplicate Individual or Business name).</response>
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<ProfileResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse<ProfileResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<ProfileResponse>), StatusCodes.Status409Conflict)]
     public async Task<ApiResponse<ProfileResponse>> CreateProfile(
         [FromBody] CreateProfileRequest request,
@@ -83,8 +85,10 @@ public class ProfilesController : ControllerBase
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of profiles owned by the current user.</returns>
     /// <response code="200">Profiles retrieved successfully.</response>
+    /// <response code="401">User is not authenticated.</response>
     [HttpGet("me")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<ProfileResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ApiResponse<IReadOnlyList<ProfileResponse>>> GetMyProfiles(
         CancellationToken cancellationToken)
     {
@@ -142,11 +146,13 @@ public class ProfilesController : ControllerBase
     /// <returns>No content on success.</returns>
     /// <response code="204">Profile successfully deleted.</response>
     /// <response code="400">Cannot delete profile with existing appointments.</response>
+    /// <response code="401">User is not authenticated.</response>
     /// <response code="403">Not authorized to delete this profile.</response>
     /// <response code="404">Profile not found.</response>
     [HttpDelete("{profileId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteProfile(

@@ -37,9 +37,20 @@ public class AvailabilitiesController : ControllerBase
     /// <summary>
     /// Creates a single-occurrence availability for the profile.
     /// </summary>
+    /// <param name="profileId">The profile ID to create availability for.</param>
+    /// <param name="request">The availability creation details.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The newly created availability with time slots.</returns>
+    /// <response code="201">Availability successfully created.</response>
+    /// <response code="400">Invalid request or domain validation error.</response>
+    /// <response code="401">User is not authenticated.</response>
+    /// <response code="403">Not authorized to create availability for this profile.</response>
+    /// <response code="404">Profile not found.</response>
+    /// <response code="409">Overlapping availability exists.</response>
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<AvailabilityDetailResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse<AvailabilityDetailResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<AvailabilityDetailResponse>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<AvailabilityDetailResponse>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse<AvailabilityDetailResponse>), StatusCodes.Status409Conflict)]
@@ -86,8 +97,18 @@ public class AvailabilitiesController : ControllerBase
     /// <summary>
     /// Lists availabilities for the profile, optionally filtered by date range.
     /// </summary>
+    /// <param name="profileId">The profile ID to list availabilities for.</param>
+    /// <param name="from">Optional start of date range filter.</param>
+    /// <param name="to">Optional end of date range filter.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of availabilities for the profile.</returns>
+    /// <response code="200">Availabilities retrieved successfully.</response>
+    /// <response code="401">User is not authenticated.</response>
+    /// <response code="403">Not authorized to view availabilities for this profile.</response>
+    /// <response code="404">Profile not found.</response>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<AvailabilityResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<AvailabilityResponse>>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<AvailabilityResponse>>), StatusCodes.Status404NotFound)]
     public async Task<ApiResponse<IReadOnlyList<AvailabilityResponse>>> GetAvailabilities(
@@ -124,8 +145,17 @@ public class AvailabilitiesController : ControllerBase
     /// <summary>
     /// Gets an availability with its time slots.
     /// </summary>
+    /// <param name="profileId">The profile ID.</param>
+    /// <param name="availabilityId">The availability ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The availability with its time slots.</returns>
+    /// <response code="200">Availability retrieved successfully.</response>
+    /// <response code="401">User is not authenticated.</response>
+    /// <response code="403">Not authorized to view this availability.</response>
+    /// <response code="404">Profile or availability not found.</response>
     [HttpGet("{availabilityId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<AvailabilityDetailResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<AvailabilityDetailResponse>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<AvailabilityDetailResponse>), StatusCodes.Status404NotFound)]
     public async Task<ApiResponse<AvailabilityDetailResponse>> GetAvailabilityById(
@@ -163,9 +193,19 @@ public class AvailabilitiesController : ControllerBase
     /// <summary>
     /// Deletes an availability (only if no slots are booked).
     /// </summary>
+    /// <param name="profileId">The profile ID.</param>
+    /// <param name="availabilityId">The availability ID to delete.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">Availability successfully deleted.</response>
+    /// <response code="400">Cannot delete availability with booked slots.</response>
+    /// <response code="401">User is not authenticated.</response>
+    /// <response code="403">Not authorized to delete this availability.</response>
+    /// <response code="404">Profile or availability not found.</response>
     [HttpDelete("{availabilityId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteAvailability(
