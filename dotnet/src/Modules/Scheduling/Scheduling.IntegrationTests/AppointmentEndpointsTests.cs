@@ -125,8 +125,8 @@ public class AppointmentEndpointsTests : IntegrationTestBase
 
         // Assert
         var apiResponse = await response.ValidateSuccessAsync<IReadOnlyList<AppointmentResponse>>(HttpStatusCode.OK);
-        Assert.Single(apiResponse.Data!);
-        Assert.True(apiResponse.Data.First().IsHost);
+        var appointment = Assert.Single(apiResponse.Data!);
+        Assert.True(appointment.IsHost);
     }
 
     [Fact]
@@ -226,7 +226,7 @@ public class AppointmentEndpointsTests : IntegrationTestBase
 
         // Assert
         var apiResponse = await response.ValidateSuccessAsync<IReadOnlyList<AppointmentResponse>>(HttpStatusCode.OK);
-        Assert.Single(apiResponse.Data!);
-        Assert.Equal("Scheduled", apiResponse.Data.First().Status);
+        var appointment = Assert.Single(apiResponse.Data!);
+        Assert.Equal("Scheduled", appointment.Status);
     }
 }

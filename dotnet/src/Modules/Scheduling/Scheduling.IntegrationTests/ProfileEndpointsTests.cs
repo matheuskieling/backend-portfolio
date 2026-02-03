@@ -98,7 +98,7 @@ public class ProfileEndpointsTests : IntegrationTestBase
 
         // Assert
         Assert.Equal(3, profiles.Count);
-        Assert.Single(profiles.Where(p => p.Type == "Individual"));
+        Assert.Single(profiles, p => p.Type == "Individual");
         Assert.Equal(2, profiles.Count(p => p.Type == "Business"));
     }
 
