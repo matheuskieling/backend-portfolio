@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class CannotBlockBookedSlotException : DomainException
+public sealed class CannotBlockBookedSlotException : ValidationException
 {
     private const string ErrorCode = "CANNOT_BLOCK_BOOKED_SLOT";
 

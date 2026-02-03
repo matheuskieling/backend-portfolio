@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class TimeSlotNotFoundException : DomainException
+public sealed class TimeSlotNotFoundException : NotFoundException
 {
     private const string ErrorCode = "TIME_SLOT_NOT_FOUND";
 

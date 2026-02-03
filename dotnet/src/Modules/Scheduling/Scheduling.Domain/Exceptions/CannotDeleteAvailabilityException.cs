@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class CannotDeleteAvailabilityException : DomainException
+public sealed class CannotDeleteAvailabilityException : ValidationException
 {
     private const string ErrorCode = "CANNOT_DELETE_AVAILABILITY";
 

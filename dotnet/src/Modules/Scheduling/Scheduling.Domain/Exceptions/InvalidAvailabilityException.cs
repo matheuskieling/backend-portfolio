@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class InvalidAvailabilityException : DomainException
+public sealed class InvalidAvailabilityException : ValidationException
 {
     private const string ErrorCode = "INVALID_AVAILABILITY";
 

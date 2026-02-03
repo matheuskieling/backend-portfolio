@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class InvalidScheduleConfigurationException : DomainException
+public sealed class InvalidScheduleConfigurationException : ValidationException
 {
     private const string ErrorCode = "INVALID_SCHEDULE_CONFIGURATION";
 

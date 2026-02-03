@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class CancellationDeadlinePassedException : DomainException
+public sealed class CancellationDeadlinePassedException : ValidationException
 {
     private const string ErrorCode = "CANCELLATION_DEADLINE_PASSED";
 

@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class SchedulingProfileNotFoundException : DomainException
+public sealed class SchedulingProfileNotFoundException : NotFoundException
 {
     private const string ErrorCode = "SCHEDULING_PROFILE_NOT_FOUND";
 

@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class CannotDeleteProfileException : DomainException
+public sealed class CannotDeleteProfileException : ValidationException
 {
     private const string ErrorCode = "CANNOT_DELETE_PROFILE";
 

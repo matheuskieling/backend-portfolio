@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace Scheduling.Domain.Exceptions;
 
-public sealed class TimeSlotAlreadyBlockedException : DomainException
+public sealed class TimeSlotAlreadyBlockedException : ValidationException
 {
     private const string ErrorCode = "TIME_SLOT_ALREADY_BLOCKED";
 
