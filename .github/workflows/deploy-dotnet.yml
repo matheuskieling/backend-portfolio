@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'dotnet/**'
+  workflow_dispatch:
 
 jobs:
   test:
