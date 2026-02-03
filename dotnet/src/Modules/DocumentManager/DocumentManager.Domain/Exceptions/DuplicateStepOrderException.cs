@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class DuplicateStepOrderException : DomainException
+public sealed class DuplicateStepOrderException : ConflictException
 {
     private const string ErrorCode = "INVALID_STEP_ORDER";
 

@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class DocumentHasNoVersionsException : DomainException
+public sealed class DocumentHasNoVersionsException : ValidationException
 {
     private const string ErrorCode = "DOCUMENT_HAS_NO_VERSIONS";
 

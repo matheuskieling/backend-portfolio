@@ -1,6 +1,6 @@
 using DocumentManager.Application.Common.Interfaces;
 using DocumentManager.Application.Repositories;
-using Common.Domain;
+using Common.Domain.Exceptions;
 using DocumentManager.Domain.Entities;
 
 namespace DocumentManager.Application.UseCases.Tags;
@@ -9,7 +9,7 @@ public sealed record CreateTagCommand(string Name);
 
 public sealed record CreateTagResult(Guid Id, string Name);
 
-public sealed class TagAlreadyExistsException : DomainException
+public sealed class TagAlreadyExistsException : ConflictException
 {
     public TagAlreadyExistsException(string name)
         : base("TAG_ALREADY_EXISTS", $"A tag with name '{name}' already exists.")

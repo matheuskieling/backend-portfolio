@@ -1,9 +1,9 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 using DocumentManager.Domain.Enums;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class InvalidDocumentStateException : DomainException
+public sealed class InvalidDocumentStateException : ValidationException
 {
     private const string ErrorCode = "INVALID_DOCUMENT_STATE";
 

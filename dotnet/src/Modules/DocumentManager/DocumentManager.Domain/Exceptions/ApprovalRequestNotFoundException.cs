@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class ApprovalRequestNotFoundException : DomainException
+public sealed class ApprovalRequestNotFoundException : NotFoundException
 {
     private const string ErrorCode = "APPROVAL_REQUEST_NOT_FOUND";
 

@@ -1,8 +1,8 @@
-using Common.Domain;
+using Common.Domain.Exceptions;
 
 namespace DocumentManager.Domain.Exceptions;
 
-public sealed class WorkflowNotFoundException : DomainException
+public sealed class WorkflowNotFoundException : NotFoundException
 {
     private const string ErrorCode = "WORKFLOW_NOT_FOUND";
 
